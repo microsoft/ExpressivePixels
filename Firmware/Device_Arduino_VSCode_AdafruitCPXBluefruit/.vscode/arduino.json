@@ -1,0 +1,7 @@
+{
+    "sketch": "ExpressivePixels.ino",
+    "port": "COM1",
+    "board": "adafruit:nrf52:cplaynrf52840",
+    "configuration": "softdevice=s140v6,debug=l2",
+    "output": "./ArduinoOutput"
+}
