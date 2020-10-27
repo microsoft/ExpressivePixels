@@ -1,26 +1,36 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
+
+/*
+ * Main Experessive Pixels application class
+ **/
 #include "EPXVariant.h"
 #include "EPXPlatform_Settings.h"
 #include "EPXPlatform_USB.h"
 #include "EPXPlatform_GPIO.h"
 #include "EPXApp.h"
 
-EPX_OPTIMIZEFORDEBUGGING_ON
+// Turn off all compiler optimizations to easy debugging (for Arduino toolchain)
+EPX_OPTIMIZEFORDEBUGGING_ON 
 
-CExpressivePixelsApp	g_ExpressivePixelsApp;
-APPSETTINGS				g_appSettings;
-uint8_t					g_emptyAESKey[EPX_AES_KEY_BYTE_SIZE] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+// Global application class	
+CExpressivePixelsApp	g_ExpressivePixelsApp; 
 
-extern uint8_t bootAnimation[];
+// Empty (NULL) security key
+uint8_t					g_emptyAESKey[EPX_AES_KEY_BYTE_SIZE] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }; 
 
 
+/*
+ * Application class constructure
+ **/
 CExpressivePixelsApp::CExpressivePixelsApp() :	m_CAnimator(&m_CDisplayArray)
 {
+	/*********************************************/
+	/* Set all class variables to default states
+	 *********************************************/
 	m_pCActiveSerialChannel = NULL;
 	m_triggerSources = NULL;
 	memcpy(m_aesKey, g_emptyAESKey, sizeof(m_aesKey));
-	memset(&g_appSettings, 0x00, sizeof(g_appSettings));
 	memset(&m_animationPayloadStateMachine, 0x00, sizeof(m_animationPayloadStateMachine));
 	memset(&m_StagedAnimation, 0x00, sizeof(m_StagedAnimation));
 
@@ -74,15 +84,21 @@ CExpressivePixelsApp::CExpressivePixelsApp() :	m_CAnimator(&m_CDisplayArray)
 
 
 
+/*
+ * Application Initialize function from underlying BSP layer
+ **/
 bool CExpressivePixelsApp::AppInitialize(CLEDDriverBase *pLEDDriver, uint16_t *pArrayMatrix, uint16_t arrayWidth, uint16_t arrayHeight)
 {
-	// Configure hardware
+	// Configure hardware if pins have been set
 	EPXPlatform_GPIO_Initialize(this, SystemGPIOEventHandler);	
 	EPXPlatform_GPIO_PinConfigure(GPIO_PIN_FEATURE, EPXGPIO_INPUT);	
 	EPXPlatform_GPIO_ButtonClickConfigure(GPIO_PIN_FEATURE);
-	pinMode(GPIO_PIN_3V3_ACCEN, OUTPUT);
+	if (GPIO_PIN_3V3_ACCEN > 0)
+		pinMode(GPIO_PIN_3V3_ACCEN, OUTPUT);
 	if (GPIO_PIN_BOOSTER_ENABLE > 0)
 		pinMode(GPIO_PIN_BOOSTER_ENABLE, OUTPUT);
+	
+	// Do a quick LED flash upon boot
 	pinMode(GPIO_PIN_STATUSLED, OUTPUT);
 	digitalWrite(GPIO_PIN_STATUSLED, HIGH);
 	delay(250);
@@ -108,16 +124,15 @@ bool CExpressivePixelsApp::AppInitialize(CLEDDriverBase *pLEDDriver, uint16_t *p
 	SampleBattery();
 #endif
 
+	// Initialize storage layers, nd load settings
 	m_CAppStorage.Initialize(bFeatureButtonPressedOnBoot);
 	m_CAppStorage.SetReadDirectFromFile(true);   // On by default
 	CSettings::Initialize();
 
-	DEBUGLOGLN("** INITIALIZED **");
-
 	/**** Read persisted app settings ****/
 	// Setting - load Bluetooth advertising name, and USB device descriptor name
-	CSettings::ReadString((const char *) SETTINGSKEY_DEVICENAME, g_appSettings.szDeviceName, sizeof(g_appSettings.szDeviceName));
-	m_CBLEChannel.SetDeviceName(g_appSettings.szDeviceName);
+	CSettings::ReadString((const char *) SETTINGSKEY_DEVICENAME, m_szDeviceName, sizeof(m_szDeviceName));
+	m_CBLEChannel.SetDeviceName(m_szDeviceName);
 	
 	// Setting - load AES Key
 	CSettings::Read((const char *) SETTINGSKEY_AESKEY, m_aesKey, sizeof(m_aesKey));
@@ -163,6 +178,7 @@ bool CExpressivePixelsApp::AppInitialize(CLEDDriverBase *pLEDDriver, uint16_t *p
 	// Initialize trigger sources
 	RegisterTriggerSource(&m_CSwitchActivation);
 	
+	// Finally start Bluetooth advertising
 	m_CBLEChannel.Start();
 	
 #ifdef EPXMIDI
@@ -172,24 +188,32 @@ bool CExpressivePixelsApp::AppInitialize(CLEDDriverBase *pLEDDriver, uint16_t *p
 	m_CMIDIActivation.SetAnimationActivationHandler(this, ActivateSequenceByNameEvent);
 	m_CMIDIActivation.SetTraceEventHandler(this, TraceEventHandler);
 	m_bMIDIActivation = true;
-	m_bAutoPlayOnUSBPower = false;
 #endif	
 	
 	DEBUGLOGLN("** WAITING RAM ** %s", EPXString(freeRam()).c_str());
 	m_BootMillis = millis();
 
+	// Do a pending power state so the system will go to sleep
 	m_pendingPowerStateChange = EPXAPP_PENDINGPOWERSTATE_BLE_OFF;
 
 	// Register all configured buttons
 	EPXPlatform_GPIO_ButtonClickFinalize();
 	
+	// Do initial power up state activations for MIDI, BLE advertising etc
 	ChannelsInitialized();
+	
+	// Activate USB
 	m_CUSBChannel.Activate();	
+	
+	DEBUGLOGLN("** INITIALIZED **");
 	return true;
 }
 
 
 
+/*
+ * Called to determine if a Bluetooth security key has been set
+ **/
 bool CExpressivePixelsApp::IsAESKeySet()
 {
 	return memcmp(m_aesKey, g_emptyAESKey, sizeof(g_emptyAESKey)) != 0;	
@@ -197,35 +221,41 @@ bool CExpressivePixelsApp::IsAESKeySet()
 
 
 
+/*
+ * Clears/Resets the Bluetooth security key
+ **/
 void CExpressivePixelsApp::ClearAESKey()
 {
 	DEBUGLOGLN("ClearAESKey");	
 	
-	m_CAppStorage.Power(true);
+	// Need to power up storage chip
+	m_CAppStorage.Power(true); 
+	
+	// Clear and persis
 	memcpy(m_aesKey, g_emptyAESKey, sizeof(m_aesKey));			
 	CSettings::Write((const char *)SETTINGSKEY_AESKEY, m_aesKey, sizeof(m_aesKey));
 	if (!m_bPowerOnState)
-		m_CAppStorage.Power(false);
-	
-	int flashes = 8;
-	while (flashes--)
-	{		
-		digitalWrite(GPIO_PIN_STATUSLED, (flashes % 2) == 0 ? HIGH : LOW);		
-		delay(250);
-	}
+		m_CAppStorage.Power(false);	
 }
 
 
 
+/*
+ * Does the authentication in response to a security challenge response from the host
+ *
+ **/
 void CExpressivePixelsApp::Authenticate(char *pszChallengeResponseHex)
 {
 	DEBUGLOGLN("\tResponse received");
 	m_lastAuthChallengeTime = 0;
+	
+	// Ensure the response is the correct length
 	if (strlen(pszChallengeResponseHex) == EPX_NONCE_SIZE * 2)
 	{
 		int idx;
 		uint8_t responseNONCE[EPX_NONCE_SIZE];
 		
+		// Decode from hex string to bytes
 		idx = 0;
 		while (*pszChallengeResponseHex != 0x00)
 		{
@@ -233,9 +263,11 @@ void CExpressivePixelsApp::Authenticate(char *pszChallengeResponseHex)
 			pszChallengeResponseHex += 2;
 		}
 		
+		// Do the underlying platform encryption 
 		uint8_t *pEncryptedLocalNONCE = EPXPlatform_Crypto_Encrypt(m_aesKey, m_currentNONCE, sizeof(m_currentNONCE));
 		if (pEncryptedLocalNONCE != NULL)
 		{
+			// Compare keys
 			if (memcmp(pEncryptedLocalNONCE, responseNONCE, EPX_NONCE_SIZE) == 0)		
 			{
 				DEBUGLOGLN("\tAuthentication SUCCEEDED - keys compare");				
@@ -263,10 +295,14 @@ void CExpressivePixelsApp::Authenticate(char *pszChallengeResponseHex)
 
 
 
+/*
+ * Registers an activation trigger source with the application
+ **/
 void CExpressivePixelsApp::RegisterTriggerSource(ITriggerSource *pTriggerSource)
 {
 	TRIGGERSOURCEITEM *pNewTriggerSource;
 
+	// Allocate new
 	pNewTriggerSource = (TRIGGERSOURCEITEM *) malloc(sizeof(TRIGGERSOURCEITEM));
 	if (pNewTriggerSource != NULL)
 	{
@@ -294,22 +330,35 @@ void CExpressivePixelsApp::RegisterTriggerSource(ITriggerSource *pTriggerSource)
 
 
 
+
+/*
+ * Called to do subsystem state initialization when app starts
+ **/
 void CExpressivePixelsApp::ChannelsInitialized()
 {
+	// If in Bluetooth beacon activation mode
 	if (m_bBeaconStartupActivation)
 	{
+		// Notify Bluetooth layer to scan
 		m_bBeaconActivation = true;
 		m_CBLEChannel.SetBeaconActivation(m_bBeaconActivation);
+		
+		// Power up the device as its actively listening
 		PowerManage(true);
 	}
-	else if (m_bMIDIActivation)
+	// MIDI requires power up
+	else if (m_bMIDIActivation) 
 		PowerManage(true);
+	// Otherwise app should go to sleep
 	else
 		PowerManage(false, true);
 }
 
 
 
+/*
+ * Updates Bluetooth advertizing beacon structure
+ **/
 void CExpressivePixelsApp::UpdateAdvertisingData()
 {
 	m_manufacturerPayload.firmwareVersionHi = VERSION_MAJOR;
@@ -320,6 +369,9 @@ void CExpressivePixelsApp::UpdateAdvertisingData()
 
 
 
+/*
+ * Called on-the-interrupt from the underlying communications layers when the system power state has changed
+ **/
 void CExpressivePixelsApp::SystemPowerStateChanged(void *pinstance, uint8_t state, bool set)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;
@@ -333,6 +385,9 @@ void CExpressivePixelsApp::SystemPowerStateChanged(void *pinstance, uint8_t stat
 
 
 
+/*
+ * Called on-the-interrupt from the underlying communications layers when the app can start communicating
+ **/
 void CExpressivePixelsApp::SystemCommunicationReady(void *pinstance)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;
@@ -341,6 +396,9 @@ void CExpressivePixelsApp::SystemCommunicationReady(void *pinstance)
 
 
 
+/*
+ * Called on-the-interrupt from the underlying communications layers when the connection state has changed
+ **/
 void CExpressivePixelsApp::SystemConnectionStateChanged(void *pinstance, uint8_t state, bool set)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;
@@ -374,6 +432,7 @@ void CExpressivePixelsApp::SystemConnectionStateChanged(void *pinstance, uint8_t
 			break;
 			
 		case EPXAPP_CONNECTIONCHANNEL_BLE:
+			// Switch primary communication channel 
 			g_ExpressivePixelsApp.SetActiveSerialChannel(&pthis->m_CBLEChannel);
 			pthis->m_pendingConnectionStateChange = EPXAPP_PENDINGCONNECTIONSTATE_CONNECTED_BLE;
 			break;
@@ -387,14 +446,19 @@ void CExpressivePixelsApp::SystemConnectionStateChanged(void *pinstance, uint8_t
 
 
 
+/*
+ * Call by the underlying platform layer when a registered button has been triggered
+ **/
 void CExpressivePixelsApp::SystemGPIOEventHandler(void *pinstance, uint8_t event, uint16_t pin, uint16_t value)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;	
 	
+	// If any button has been pushed down
 	if (event == EPXGPIO_BUTTON_PUSHED)
 	{
 		switch (pin)
 		{
+		// Feature button, do Bluetooth key clear tracking
 		case GPIO_PIN_FEATURE:
 			pthis->m_lastClearBLEKeyButtonPushed = millis();
 			break;
@@ -404,6 +468,7 @@ void CExpressivePixelsApp::SystemGPIOEventHandler(void *pinstance, uint8_t event
 	{
 		switch (pin)
 		{
+			// Feature button
 			case GPIO_PIN_FEATURE:
 				if (pthis->m_lastClearBLEKeyButtonPushed != 0)
 				{
@@ -417,11 +482,15 @@ void CExpressivePixelsApp::SystemGPIOEventHandler(void *pinstance, uint8_t event
 
 
 
+/*
+ * Central handler to send tracking information back to host
+ **/
 void CExpressivePixelsApp::TraceEventHandler(void *pinstance, char *pszTrace)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;	
 	EPXString response;
 	
+	// JSON package up response and send to host
 	response += JSON_OPENOBJECT;
 	response += JSON_KEYVALUE_STRINGPAIR(JSON_TRACE, pszTrace);
 	response += JSON_CLOSEOBJECT;
@@ -430,6 +499,9 @@ void CExpressivePixelsApp::TraceEventHandler(void *pinstance, char *pszTrace)
 
 
 
+/*
+ * Called from USB layer when internal buffers are full and the app needs to process what is in the queue
+ **/
 void CExpressivePixelsApp::USBQueue_PurgeRequestHandler(void *pinstance)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;	
@@ -438,8 +510,12 @@ void CExpressivePixelsApp::USBQueue_PurgeRequestHandler(void *pinstance)
 
 
 
+/*
+ * Places the device into the requested power state
+ **/
 bool CExpressivePixelsApp::PowerManage(bool on, bool force)
 {
+	// Only if changed or forced
 	if (on != m_bPowerOnState || force)
 	{
 		m_bPowerOnState = on;
@@ -450,18 +526,29 @@ bool CExpressivePixelsApp::PowerManage(bool on, bool force)
 		// Power control PWM for battery sampling
 		m_BatteryMonitor.Power(on);
 		
+		// If waking up
 		if (on)
 		{
-			if (GPIO_PIN_BOOSTER_ENABLE > 0)
+			// Power up 5V booster module
+			if(GPIO_PIN_BOOSTER_ENABLE > 0)
+			{
 				digitalWrite(GPIO_PIN_BOOSTER_ENABLE, HIGH);
-			delay(100);   	
+			
+				// Allow power supply to stabilize
+				delay(100);  
+			}
+			
 #ifdef VARIANTCAPABILITY_BATTERY_MONITORING		
+			// Sample battery
 			SampleBattery();
 #endif			
 		}
 		else
 		{
+			// Turn off display array
 			m_CDisplayArray.PowerOff();
+			
+			// Power down 5V booster
 			if (GPIO_PIN_BOOSTER_ENABLE > 0)
 				digitalWrite(GPIO_PIN_BOOSTER_ENABLE, LOW);
 			m_ledToggle = false;		
@@ -474,16 +561,23 @@ bool CExpressivePixelsApp::PowerManage(bool on, bool force)
 
 
 
+/*
+ * Called when a Bluetooth advertising beacon has been received
+ **/
 void CExpressivePixelsApp::BLE_BeaconReceived(void *pinstance, char *pszHost, uint8_t beaconData)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;	
 	
+	// This is called on an interrupt so app needs to process this asynchronously
 	pthis->m_pPendingBeaconActivationHost = pszHost;
 	pthis->m_pendingBeaconData = beaconData;
 }
 
 
 
+/*
+ * Processes a change in device connection state
+ **/
 bool CExpressivePixelsApp::ProcessConnectionStateChange()
 {
 	bool bNewConnectionEstablished = false;
@@ -491,10 +585,12 @@ bool CExpressivePixelsApp::ProcessConnectionStateChange()
 	// Process a change in connection state
 	switch(m_pendingConnectionStateChange)
 	{
-	case EPXAPP_PENDINGCONNECTIONSTATE_DISCONNECTED_USB:
+	case EPXAPP_PENDINGCONNECTIONSTATE_DISCONNECTED_USB:		
+		// USB has been disconnected yet still connected over Bluetooth keep power state on
 		if (m_connectedChannel == EPXAPP_CONNECTIONCHANNEL_BLE)
 			break;
 		// Fall through
+		
 	case EPXAPP_PENDINGCONNECTIONSTATE_DISCONNECTED_BLE:
 		if (m_connectedChannel != EPXAPP_CONNECTIONCHANNEL_NONE)
 		{
@@ -531,6 +627,9 @@ bool CExpressivePixelsApp::ProcessConnectionStateChange()
 
 
 
+/*
+ * Processes an asynchronous request to a power state change in the application's main loop 
+ **/
 void CExpressivePixelsApp::ProcessPowerStateChange()
 {
 	// Process a change in power state
@@ -543,6 +642,7 @@ void CExpressivePixelsApp::ProcessPowerStateChange()
 			m_powerState |= EPXAPP_POWERSTATE_ON_BLE;
 		else if (m_pendingPowerStateChange == EPXAPP_PENDINGPOWERSTATE_USB_ON)
 		{
+			// If plugged into USB and the 'autoplay on USB' is on then start playing all animations on the device
 			if (m_bAutoPlayOnUSBPower && m_connectedChannel == EPXAPP_CONNECTIONCHANNEL_NONE)
 				ToggleInvokedAutoPlay(true);
 			m_powerState |= EPXAPP_POWERSTATE_ON_USB;
@@ -557,6 +657,7 @@ void CExpressivePixelsApp::ProcessPowerStateChange()
 				m_powerState &= ~EPXAPP_POWERSTATE_ON_BLE;
 			else if (m_pendingPowerStateChange == EPXAPP_PENDINGPOWERSTATE_USB_OFF && m_connectedChannel != EPXAPP_CONNECTIONCHANNEL_BLE)
 			{
+				// If losing USB power then turn off auto-play animations
 				if (m_bAutoPlayOnUSBPower)	
 					ToggleInvokedAutoPlay(false);
 				m_powerState &= ~EPXAPP_POWERSTATE_ON_USB;
@@ -569,21 +670,31 @@ void CExpressivePixelsApp::ProcessPowerStateChange()
 
 
 
+/*
+ * Changes the state of the device based on the current power state
+ **/
 void CExpressivePixelsApp::ProcessPowerState()
 {	
 	// Power down if no channel is active
 	if(m_powerState == EPXAPP_POWERSTATE_NONE && m_renderMode == RENDERMODE_ANIMATE && m_lastClearBLEKeyButtonPushed == 0 &&
 		!m_bInvokedAutoPlay && !m_bBeaconActivation && !m_bMIDIActivation && m_triggerPowerMode == EPXAPP_TRIGGERPOWERMODE_OFF)
 	{
+		// Turn off status LED
 		EPXPlatform_GPIO_PinWrite(GPIO_PIN_STATUSLED, EPXGPIO_LOW);		
+		
+		// MCU sleep device
 		EPXPlatform_Runtime_MCUSleep();
 	}
 }
 
 
 
+/*
+ * Called when the underlying communication connection has been fully established
+ **/
 void CExpressivePixelsApp::ProcessCommunicationReady()
 {
+	// If a BLE connection has been made and the security key has been set
 	if (m_connectedChannel == EPXAPP_CONNECTIONCHANNEL_BLE && IsAESKeySet())
 	{
 		DEBUGLOGLN("Authenticating...");				
@@ -610,6 +721,9 @@ void CExpressivePixelsApp::ProcessCommunicationReady()
 
 
 
+/*
+ * Processes status LED based on the state of the device
+ **/
 void CExpressivePixelsApp::ProcessIndicators()
 {
 	// Toggle system awake LED
@@ -623,10 +737,14 @@ void CExpressivePixelsApp::ProcessIndicators()
 
 
 
+/*
+ * Processes triggering subsystems eg MIDI, BeaconActivation, SwitchActivation
+ **/
 void CExpressivePixelsApp::ProcessTriggers()
 {
 	TRIGGERSOURCEITEM	*pTriggerSourceItem = m_triggerSources;
 		
+	// Process each
 	while (pTriggerSourceItem != NULL)
 	{		
 		pTriggerSourceItem->pITriggerSource->Process();
@@ -636,16 +754,24 @@ void CExpressivePixelsApp::ProcessTriggers()
 
 
 
+/*
+ * Processes rendering for the device
+ **/
 void CExpressivePixelsApp::ProcessRendering()
 {
 	switch (m_renderMode)
 	{
+	// If in regular animation mode
 	case RENDERMODE_ANIMATE:
+		// Pass down to the animation rendering class
 		if (m_CAnimator.Process())
 		{
+			// When an animation has completed rendering
 			bool restarted;
-				
+			
 			DEBUGLOGLN("Animation COMPLETE ");
+
+			// Process autoplay
 			if (m_CAppStorage.IsAutoPlayActive() && m_CAppStorage.AutoPlaylistIterate(false, &restarted))
 			{
 				DEBUGLOGLN("Next AUTOPLAY %s", m_CAppStorage.AutoPlaylistCurrent()->pszGUID);
@@ -653,6 +779,7 @@ void CExpressivePixelsApp::ProcessRendering()
 			}
 			else
 			{
+				// If beacon activation is active and a trigger has been received play it
 				if (m_bBeaconActivation && m_lastBeaconData > 0 && m_pActiveBeaconActivation != NULL && (m_pActiveBeaconActivation->m_beaconActivationBit  & m_lastBeaconData) != 0)
 					ActivateSequenceFromName(m_pActiveBeaconActivation->szAnimationName);
 				else if (m_bInvokedAutoPlay)
@@ -693,10 +820,13 @@ void CExpressivePixelsApp::ProcessRendering()
 
 
 
+/*
+ * Processes battery state
+ **/
 void CExpressivePixelsApp::ProcessBattery()
 {
 #ifdef VARIANTCAPABILITY_BATTERY_MONITORING	
-	// Sample battery periodically - 60s
+	// Sample battery voltage periodically - 60s
 	if(millisPassed(m_lastSampleBatteryTimer) > 60000)
 		SampleBattery();
 #endif
@@ -704,11 +834,15 @@ void CExpressivePixelsApp::ProcessBattery()
 
 
 
+/*
+ * Generates a connection device response to the connected host
+ **/
 EPXString CExpressivePixelsApp::GetDeviceResponseInfo()
 {
 	EPXString response, capabilityResponse;
 	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED("FIRMWARE", (EPXString((int) VERSION_MAJOR) + "." + EPXString((int) VERSION_MINOR)));	
-	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED("MODEL", EPX_DEVICEMODEL);			
+	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED("FWVERSIONSRC", EPX_FWVERSIONSRC);
+	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED("MODEL", EPX_DEVICEMODEL);
 	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED("DEVICENAME", m_CBLEChannel.GetRealizedDeviceName());			
 	response += JSON_KEYVALUE_VALUEPAIR_CONTINUED("BRIGHTNESS", EPXString(m_CDisplayArray.GetBrightness()));
 	response += JSON_KEYVALUE_VALUEPAIR_CONTINUED("DISPLAYWIDTH", EPXString((int) m_CDisplayArray.Width()));
@@ -716,10 +850,10 @@ EPXString CExpressivePixelsApp::GetDeviceResponseInfo()
 	response += JSON_KEYVALUE_VALUEPAIR_CONTINUED("AUTOPLAY", EPXString((int) m_bAutoPlayOnUSBPower));
 	response += GetBatteryInfoResponse();
 	response += JSON_CONTINUATION;
+	response += JSON_KEYOBJECTOPENARRAY("CAPABILITIES");
 
 	// Specify device capabilities
-#ifdef VARIANTCAPABILITY_SECURITY	
-		response += JSON_KEYOBJECTOPENARRAY("CAPABILITIES");
+#ifdef VARIANTCAPABILITY_SECURITY			
 			capabilityResponse += JSON_QUOTEDVALUE("SECURITY");
 #endif	
 	
@@ -747,29 +881,36 @@ EPXString CExpressivePixelsApp::GetDeviceResponseInfo()
 
 
 
+/*
+ * Called by the main application loop to run the application processing cycle
+ **/
 void CExpressivePixelsApp::AppProcess(bool disableUSBProcessing) 
 {
 	bool bNewConnectionEstablished = false;
 		
+	// Process USB logic
 	if (!disableUSBProcessing)
 		m_CUSBChannel.Process();
 		
-	// Process connection state changes
+	// Async process connection state changes
 	if (m_pendingConnectionStateChange != EPXAPP_PENDINGCONNECTIONSTATE_NONE)
 		bNewConnectionEstablished = ProcessConnectionStateChange();
 	
-	// Process power state changes
+	// Async process power state changes
 	if (m_pendingPowerStateChange != EPXAPP_PENDINGPOWERSTATE_NONE)
 		ProcessPowerStateChange();
 
+	// Async process underlying connection establishment
 	if (m_pendingCommunicationReady)
 		ProcessCommunicationReady();
 	
 	// Process appropriate power state actions - eg: go to sleep, keep on sleeping
 	ProcessPowerState();
 	
+	// If authnetication see if the host has responded within the time allowed
 	if (!m_bAuthenticated && m_lastAuthChallengeTime != 0 && millisPassed(m_lastAuthChallengeTime) > EPX_AUTHENTICATION_RESPONSE_TIMEOUT_MS)
 	{
+		// Otherwise disconnect from the host
 		m_lastAuthChallengeTime = 0;
 		DEBUGLOGLN("\tAuthentication response TIMEOUT");			
 		m_CBLEChannel.Disconnect();
@@ -788,10 +929,11 @@ void CExpressivePixelsApp::AppProcess(bool disableUSBProcessing)
 	// Process buttons
 	if(m_lastClearBLEKeyButtonPushed > 0 && millisPassed(m_lastClearBLEKeyButtonPushed) > EPX_CLEARBLEKEY_BUTTONHOLD_MS)
 	{
+		// Clear the connection key if requested by long button hold
 		ClearAESKey();
 		m_lastClearBLEKeyButtonPushed = 0;
-	}	
-	else if (m_PendingFeatureButtonPushed)
+	}		
+	else if(m_PendingFeatureButtonPushed) // If a quick feature button press
 	{
 		ToggleInvokedAutoPlay(!m_bInvokedAutoPlay);
 		m_PendingFeatureButtonPushed = false;
@@ -806,12 +948,14 @@ void CExpressivePixelsApp::AppProcess(bool disableUSBProcessing)
 	// Only process if a connection is active	
 	if(m_connectedChannel != EPXAPP_CONNECTIONCHANNEL_NONE || m_renderMode == RENDERMODE_RAINBOWCYCLE || m_bInvokedAutoPlay || m_bBeaconActivation || m_bMIDIActivation || m_triggerPowerMode != EPXAPP_TRIGGERPOWERMODE_OFF)
 	{		
+		// Process beacon activation
 		if (m_pPendingBeaconActivationHost != NULL)
 		{			
 			if (m_bBeaconActivation)
-			{
-				AutoPlayClear();
+			{				
+				AutoPlayClear(); // Clear autoplay if running
 				
+				// Activate animation if trigger found
 				BEACONACTIVATIONITEM *pActivation = m_beaconActivation.FindEntry(m_pPendingBeaconActivationHost, m_pendingBeaconData);
 				if (pActivation != NULL)
 					ActivateSequenceFromName(pActivation->szAnimationName);
@@ -840,6 +984,9 @@ void CExpressivePixelsApp::AppProcess(bool disableUSBProcessing)
 
 
 
+/*
+ * Starts rendering an animation specified by name
+ **/
 void CExpressivePixelsApp::ActivateSequenceByNameEvent(void *pinstance, char *pszName, uint8_t triggerPowerMode)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;	
@@ -847,11 +994,16 @@ void CExpressivePixelsApp::ActivateSequenceByNameEvent(void *pinstance, char *ps
 	// Powerup the device
 	pthis->m_triggerPowerMode = triggerPowerMode;
 	pthis->PowerManage(true);	
+	
+	// Start the animation
 	pthis->ActivateSequenceFromName(pszName);
 }
 
 
 
+/*
+ * Samples the battery voltage and updates the BLE advertising data
+ **/
 #ifdef VARIANTCAPABILITY_BATTERY_MONITORING
 void CExpressivePixelsApp::SampleBattery()
 {
@@ -865,9 +1017,13 @@ void CExpressivePixelsApp::SampleBattery()
 	}
 	UpdateAdvertisingData();	
 }
+#endif
 
 
 
+/*
+ * Generates the JSON battery response info
+ **/
 EPXString CExpressivePixelsApp::GetBatteryInfoResponse()
 {
 	EPXString response;
@@ -883,12 +1039,16 @@ EPXString CExpressivePixelsApp::GetBatteryInfoResponse()
 	response += JSON_CLOSEOBJECT;
 	return response;
 }
-#endif
 
 
 
+
+/*
+ * Sets the brightness of the display
+ **/
 void CExpressivePixelsApp::SetBrightness(uint8_t brightness)
 {
+	// Call the driver 
 	m_CDisplayArray.SetBrightness(brightness);
 
 	// Persist as setting
@@ -897,9 +1057,11 @@ void CExpressivePixelsApp::SetBrightness(uint8_t brightness)
 
 
 
+/*
+ * Processes a Console command from the host
+ **/
 void CExpressivePixelsApp::ExecuteTTYCommand()
 {
-
 	bool responseSuccess = false, syntax = false;
 	char *pszPostToken;
 	EPXString response, innerResponse;
@@ -1315,7 +1477,9 @@ sendResponse:
 
 
 
-
+/*
+ * Process a request to start or stop autoplay
+ **/
 void CExpressivePixelsApp::ToggleInvokedAutoPlay(bool bAutoPlay)
 {
 	m_bInvokedAutoPlay = bAutoPlay;	
@@ -1333,7 +1497,9 @@ void CExpressivePixelsApp::ToggleInvokedAutoPlay(bool bAutoPlay)
 }
 
 
-
+/*
+ * Starts animation Autoplay for animations stored on the device
+ **/
 void CExpressivePixelsApp::AutoPlayStart()
 {
 	if (m_CAppStorage.EnumerateAutoPlaylist())
@@ -1346,6 +1512,9 @@ void CExpressivePixelsApp::AutoPlayStart()
 
 
 
+/*
+ * Stops Autoplay'ing
+ **/
 void CExpressivePixelsApp::AutoPlayClear()
 {
 	m_CAnimator.Clear();
@@ -1356,6 +1525,9 @@ void CExpressivePixelsApp::AutoPlayClear()
 
 
 
+/*
+ * Starts an animation by ID string
+ **/
 void CExpressivePixelsApp::ActivateSequenceFromID(char *pszGUID)
 {
 	EXPRESSIVEPIXEL_SEQUENCE sequence;
@@ -1363,12 +1535,15 @@ void CExpressivePixelsApp::ActivateSequenceFromID(char *pszGUID)
 	// Firstly check if an animation is running and it is infinite looper, then interpret as stopping the animation
 	if(m_CAnimator.IsActiveAnimationInfinite(pszGUID))
 		m_CAnimator.Clear();
-	else if (m_CAppStorage.SequenceRead(pszGUID, &sequence))
-		m_CAnimator.Activate(&sequence);
+	else if (m_CAppStorage.SequenceRead(pszGUID, &sequence)) // Read from  storage
+		m_CAnimator.Activate(&sequence); // Start rendering
 }
 
 
 
+/*
+ * Starts an animation by name
+ **/
 void CExpressivePixelsApp::ActivateSequenceFromName(char *pszName)
 {
 	char *pszID = m_CAppStorage.SequenceIDFromName(pszName);
@@ -1378,6 +1553,9 @@ void CExpressivePixelsApp::ActivateSequenceFromName(char *pszName)
 
 
 
+/*
+ * Returns TRUE if the start of the string contains the specific token, and returns reference to remainder of string after the token
+ **/
 bool CExpressivePixelsApp::CompareToken(const char *psz, const char *pszToken, char **ppszPostToken)
 {
 	bool isToken;
@@ -1391,6 +1569,9 @@ bool CExpressivePixelsApp::CompareToken(const char *psz, const char *pszToken, c
 
 
 
+/*
+ * Advances string parsing - returns trimmed string after specified token
+ **/
 char *CExpressivePixelsApp::MoveToTokenParameter(const char *pszTokenHead, const char *pszToken)
 {
 	char *pszPostToken = (char *) pszTokenHead + strlen(pszToken);
@@ -1400,6 +1581,9 @@ char *CExpressivePixelsApp::MoveToTokenParameter(const char *pszTokenHead, const
 
 
 
+/*
+ * Advances string parsing returning next section of string if present
+ **/
 char *CExpressivePixelsApp::ExtractNextParameter(const char *pszTokenHead, char **ppszToken)
 {
 	char *pszCur = (char *) pszTokenHead;
@@ -1418,6 +1602,7 @@ char *CExpressivePixelsApp::ExtractNextParameter(const char *pszTokenHead, char 
 
 
 
+// 'C' to 'C++' interface
 extern "C"
 {
 	void EPXApp_Initialize(void *pLEDDriver, uint16_t *pArrayMatrix, uint16_t arrayWidth, uint16_t arrayHeight)
@@ -1431,9 +1616,6 @@ extern "C"
 	{
 		g_ExpressivePixelsApp.AppProcess();
 	}
-	
-	
-	
 }
 
 

@@ -5,7 +5,7 @@
 #include "CDisplayTopology.h"
 #include "EPXPlatform_SPIClass.h"
 
-char g_szDEFAULT_BLE_NAME[BLEMAX_DEVICENAME + 1] = "SI2Sprklt";
+char g_szDEFAULT_BLE_NAME[BLEMAX_DEVICENAME + 1] = BLE_DEFAULT_DEVICE_NAME;
 
 #ifdef DISPLAYTYPE_EMOTICONWS2812
 

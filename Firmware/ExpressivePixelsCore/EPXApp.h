@@ -5,16 +5,7 @@
 #include "EPXGlobal.h"
 
 
-
-
-typedef struct 
-{	
-	char szDeviceName[32];		
-	bool autoPlayOnUSBPower;
-} APPSETTINGS;
-
-
-
+// Application specific Bluetooth payload
 typedef struct
 {
 	uint8_t firmwareVersionHi;
@@ -25,6 +16,7 @@ typedef struct
 
 
 
+// Payload structure for device/animation sync
 typedef struct
 {
 	EPX_GUID    guid;
@@ -58,7 +50,7 @@ typedef struct
 	
 
 #define	VERSION_MAJOR						1
-#define VERSION_MINOR						43
+#define VERSION_MINOR						44
 
 #define BEACONACTIVATION_DEACTIVATION_EXPIRY_MS	30000
 #define EPX_AUTHENTICATION_RESPONSE_TIMEOUT_MS  6000
@@ -231,6 +223,7 @@ private:
 	CDisplayArray		m_CDisplayArray;
 	CDisplayTopology	m_CDisplayTopology;
 	CExpressivePixelsStorage m_CAppStorage;
+	char				m_szDeviceName[32];	// Device name for Bluetooth/USB identification
 	EPX_BLE_MANUFACTURER_PAYLOAD m_manufacturerPayload;
 	TRIGGERSOURCEITEM	*m_triggerSources;
 	uint8_t				m_batteryLevelPct;
@@ -330,7 +323,6 @@ extern "C"
 	void				EPXApp_Process();
 	void				EPXApp_Initialize(void *pLEDDriver, uint16_t *pArrayMatrix, uint16_t arrayWidth, uint16_t arrayHeight);	 
 	
-	extern APPSETTINGS	g_appSettings;
 	extern uint8_t		g_emptyAESKey[];
 #ifdef __cplusplus
 }

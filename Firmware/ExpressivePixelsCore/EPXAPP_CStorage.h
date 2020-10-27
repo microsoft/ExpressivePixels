@@ -54,7 +54,7 @@ public:
 	uint16_t SequenceReadTokenData(void *pFile, uint8_t tokenType, void *pData, uint16_t cb);
 	
 	static void Power(bool on);
-	void *SequenceClose(void *pFile);
+	void SequenceClose(void *pFile);
 	void *SequenceOpen(const char *pszFilename, int *fileSize = NULL);
 	void SequenceWriteClose(EXPRESSIVEPIXEL_SEQUENCE *pSequence);
 	void SetReadDirectFromFile(bool bDirect) { m_bForceDirectFromFile = bDirect; }

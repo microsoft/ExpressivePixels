@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
+#include "EPXVariant.h"
 #include "CDisplayArray.h"
 #include "EPXPlatform_Runtime.h"
+#ifdef VARIANT_DISPLAY_PWRMGNT
 #include "EPXPlatform_GPIO.h"
-
+#endif
 EPX_OPTIMIZEFORDEBUGGING_ON
 
 
@@ -23,12 +25,14 @@ void CDisplayArray::PowerOff()
 	{
 		DEBUGLOGLN("DISPLAYARRAY POWERING DOWN");
 		m_Powered = false;
+#ifdef VARIANT_DISPLAY_PWRMGNT		
 		if (m_nDataPin != -1)
 		{
 			digitalWrite(m_nDataPin, LOW);
 			digitalWrite(m_nClockPin, LOW);
 		}
 		digitalWrite(m_nPowerPin, LOW);
+#endif		
 	}
 }
 
@@ -40,6 +44,7 @@ void CDisplayArray::PowerOn()
 	{
 		DEBUGLOGLN("DISPLAYARRAY POWERING UP");
 		m_Powered = true;	
+#ifdef VARIANT_DISPLAY_PWRMGNT		
 		if (m_nDataPin != -1)
 		{
 			digitalWrite(m_nDataPin, LOW);
@@ -47,7 +52,7 @@ void CDisplayArray::PowerOn()
 		}	
 		
 		digitalWrite(m_nPowerPin, HIGH);
-	
+#endif	
 		delay(10);
 	}
 }

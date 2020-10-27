@@ -190,6 +190,7 @@ void CExpressivePixelsApp::PayloadExecute(uint8_t format)
 				memset(&activeAnimation, 0x00, sizeof(activeAnimation));
 				if (m_CAppStorage.SequenceRead(m_szPayloadCommandValue, &activeAnimation.Sequence, true))
 				{
+					activeAnimation.Sequence.pPalette = activeAnimation.Sequence.pRAMPalette;
 					memcpy(&pThumbnailHeader->guid, &g_displayDesignGUID, sizeof(g_displayDesignGUID));
 					pThumbnailHeader->utcTimeStamp = activeAnimation.Sequence.utcTimeStamp;
 					pThumbnailHeader->width = width;
@@ -257,9 +258,9 @@ void CExpressivePixelsApp::PayloadExecute(uint8_t format)
 		break;
 		
 	case PAYLOADCOMMAND_SETDEVICENAME:
-		strncpy(g_appSettings.szDeviceName, m_szPayloadCommandValue, sizeof(g_appSettings.szDeviceName));
-		DEBUGLOGLN("SETDEVICENAME %s", g_appSettings.szDeviceName);		
-		CSettings::WriteString((const char *)SETTINGSKEY_DEVICENAME, g_appSettings.szDeviceName);
+		strncpy(m_szDeviceName, m_szPayloadCommandValue, sizeof(m_szDeviceName));
+		DEBUGLOGLN("SETDEVICENAME %s", m_szDeviceName);		
+		CSettings::WriteString((const char *)SETTINGSKEY_DEVICENAME, m_szDeviceName);
 		m_bRebootOnDisconnect = true;
 		break;
 		

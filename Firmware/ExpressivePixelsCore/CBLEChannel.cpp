@@ -20,6 +20,7 @@ CBLEChannel::CBLEChannel()
 bool CBLEChannel::Initialize(char *pszDefaultBLEName)
 {
 	EPXPlatform_BLE_Initialize(this, pszDefaultBLEName, BLE_ConnectionStageChanged, BLE_CommunicationReady, BLE_ByteReceived);
+	EPXPlatform_BLE_SetBeaconReceivedHandler(BLE_BeaconReceived);
 	return true;	
 }
 

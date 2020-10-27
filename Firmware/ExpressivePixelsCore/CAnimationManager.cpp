@@ -3,7 +3,9 @@
 #include "EPXPlatform_Runtime.h"
 #include "EPXVariant.h"
 #include "CAnimationManager.h"
+#ifdef VARIANTCAPABILITY_STORAGE	
 #include "EPXPlatform_CStorage.h"
+#endif
 #include "stdlib.h"
 EPX_OPTIMIZEFORDEBUGGING_ON
 

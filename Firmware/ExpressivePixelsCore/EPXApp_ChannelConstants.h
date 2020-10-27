@@ -111,7 +111,7 @@ enum ChannelResponseResult
 typedef struct
 {
 	uint32_t transactionID;
-	uint8_t magic;
+	uint32_t magic;
 } BINARY_CHANNEL_RESPONSE;
 
 

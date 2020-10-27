@@ -246,7 +246,7 @@ void *CExpressivePixelsStorage::SequenceOpen(const char *pszFilename, int *pFile
 
 
 
-void *CExpressivePixelsStorage::SequenceClose(void *pFile)
+void CExpressivePixelsStorage::SequenceClose(void *pFile)
 {
 	if (pFile != NULL)
 		CStorage::Close(pFile);
