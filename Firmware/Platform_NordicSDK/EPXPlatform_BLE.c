@@ -326,7 +326,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 						{
 							NRF_LOG_INFO("MANUDATA 0x%02x", advBeaconData);
 							g_beaconData = advBeaconData;
-							(*g_pfnBLEBeaconReceived)(g_hostInstance, pItem->szBeaconHostName, g_beaconData);
+							if (g_pfnBLEBeaconReceived != NULL)
+								(*g_pfnBLEBeaconReceived)(g_hostInstance, pItem->szBeaconHostName, g_beaconData);
 						}
 					}					
 				}					
@@ -681,9 +682,7 @@ void EPXPlatform_BLE_Initialize(void *pinstance, char *pszDEFAULT_BLE_NAME, PFN_
 
 void EPXPlatform_BLE_Start()
 {
-#ifdef VARIANTCAPABILITY_BEACONACTIVATION
 	scan_init();
-#endif
 			
 #ifndef DISABLE_BLE_ADVERTISING	
 	uint32_t err_code = ble_advertising_start(&g_advertising, BLE_ADV_MODE_FAST);

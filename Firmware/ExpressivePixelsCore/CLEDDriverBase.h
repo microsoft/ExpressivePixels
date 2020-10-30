@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "stdlib.h"
 #include "string.h"
+#include "EPXPlatform_Runtime.h"
 
 
 #define DEFAULT_BRIGHTNESS 20
@@ -31,7 +32,7 @@ public:
 	~CLEDDriverBase()
 	{
 		if (m_pPixels != NULL)
-			free(m_pPixels);
+			TFREE(m_pPixels);
 	}
 	
 	virtual uint16_t NumPixels() { return m_numPixels; }
@@ -55,7 +56,7 @@ public:
 	}
 	virtual void Initialize()
 	{
-		m_pPixels = (LEDDRIVERPIXEL *) malloc(sizeof(LEDDRIVERPIXEL) * m_numPixels);
+		m_pPixels = (LEDDRIVERPIXEL *) TMALLOC(sizeof(LEDDRIVERPIXEL) * m_numPixels);
 		if (m_pPixels != NULL)
 			memset(m_pPixels, 0x00, sizeof(LEDDRIVERPIXEL) * m_numPixels);
 	}

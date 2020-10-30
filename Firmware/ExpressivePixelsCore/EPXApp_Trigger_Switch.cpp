@@ -235,7 +235,7 @@ bool CSwitchActivation::AddEntry(char *pszPin, char *pszAnimationName)
 		return Save();
 	}
 	
-	pNew = (SWITCHACTIVATIONITEM *) malloc(sizeof(SWITCHACTIVATIONITEM));
+	pNew = (SWITCHACTIVATIONITEM *) TMALLOC(sizeof(SWITCHACTIVATIONITEM));
 	if (pNew == NULL)
 		return false;
 	memset(pNew, 0x00, sizeof(SWITCHACTIVATIONITEM));
@@ -278,7 +278,7 @@ bool CSwitchActivation::RemoveEntry(char *pszPin)
 				m_itemsHead = pCur->pNext;
 			else
 				pLast->pNext = pCur->pNext;
-			free(pDelete);
+			TFREE(pDelete);
 			return Save();
 		}
 		pLast = pCur;
@@ -320,7 +320,7 @@ void CSwitchActivation::Clear()
 	{
 		pCur = m_itemsHead;
 		m_itemsHead = pCur->pNext;
-		free(pCur);
+		TFREE(pCur);
 	}
 }
 
@@ -347,7 +347,7 @@ bool CSwitchActivation::Load()
 		
 		while (fileSize > 0)
 		{
-			pNew = (SWITCHACTIVATIONITEM *) malloc(sizeof(SWITCHACTIVATIONITEM));
+			pNew = (SWITCHACTIVATIONITEM *) TMALLOC(sizeof(SWITCHACTIVATIONITEM));
 			
 			int bytesRead = CStorage::ReadFile(pFile, pNew, sizeof(SWITCHACTIVATIONITEM));
 			if (bytesRead != sizeof(SWITCHACTIVATIONITEM))

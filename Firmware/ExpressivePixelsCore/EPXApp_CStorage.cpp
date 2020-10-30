@@ -65,7 +65,7 @@ bool CExpressivePixelsStorage::DeleteFile(const char *pszFilename)
 
 bool CExpressivePixelsStorage::EnumerateAutoPlaylist()
 {
-	m_pAutoPlayList = (PAUTOPLAYPLAYLIST)malloc(sizeof(AUTOPLAYPLAYLIST));
+	m_pAutoPlayList = (PAUTOPLAYPLAYLIST)TMALLOC(sizeof(AUTOPLAYPLAYLIST));
 	if (m_pAutoPlayList != NULL)
 	{
 		memset(m_pAutoPlayList, 0x00, sizeof(AUTOPLAYPLAYLIST));
@@ -117,7 +117,7 @@ void CExpressivePixelsStorage::AutoPlaylistClear()
 {
 	if (m_pAutoPlayList != NULL)
 	{
-		free(m_pAutoPlayList);
+		TFREE(m_pAutoPlayList);
 		m_pAutoPlayList = NULL;
 	}
 }
@@ -145,7 +145,7 @@ PPERSISTED_SEQUENCE_LIST CExpressivePixelsStorage::EnumerateSequences()
 				pCur->pszGUID = SequenceReadTokenString(pFile, SEQUENCETOKEN_GUID);										
 				if (pCur->pszGUID == NULL)
 				{					
-					pCur->pszGUID = (char *) malloc(strlen(pCur->pszFilename) + 1);
+					pCur->pszGUID = (char *) TMALLOC(strlen(pCur->pszFilename) + 1);
 					if (pCur->pszGUID != NULL)
 						strcpy(pCur->pszGUID, pCur->pszFilename);
 				}		
@@ -320,12 +320,12 @@ char *CExpressivePixelsStorage::SequenceReadTokenString(void *pFile, uint8_t tok
 				{
 					if (nameLen <= fileSize)
 					{
-						char *psz = (char *)malloc(nameLen + 1);
+						char *psz = (char *)TMALLOC(nameLen + 1);
 						if (psz == NULL)
 							break;						
 						if (!ReadBytes(pFile, &fileSize, (uint8_t *) psz, nameLen))
 						{
-							free(psz);
+							TFREE(psz);
 							break;
 						}
 						psz[nameLen] = 0x00;
@@ -455,7 +455,7 @@ bool CExpressivePixelsStorage::SequenceRead(const char *pszGUID, EXPRESSIVEPIXEL
 				break;
 						
 			case SEQUENCETOKEN_NAME:					
-				pSequence->pszName = (char *)malloc(pSequence->nameLen + 1);
+				pSequence->pszName = (char *)TMALLOC(pSequence->nameLen + 1);
 				if (pSequence->pszName == NULL)
 					goto error;
 				if (!ReadBytes(pFile, &fileSize, (uint8_t *) pSequence->pszName, pSequence->nameLen))
@@ -480,7 +480,7 @@ bool CExpressivePixelsStorage::SequenceRead(const char *pszGUID, EXPRESSIVEPIXEL
 				break;
 
 			case SEQUENCETOKEN_PALLETEBYTES:
-				pSequence->pRAMPalette = (PALETTE_ENTRY *)malloc(pSequence->Meta.cbPallete * sizeof(PALETTE_ENTRY));
+				pSequence->pRAMPalette = (PALETTE_ENTRY *)TMALLOC(pSequence->Meta.cbPallete * sizeof(PALETTE_ENTRY));
 				if (pSequence->pRAMPalette == NULL)
 					goto error;				
 				if (!ReadBytes(pFile, &fileSize, (uint8_t *) pSequence->pRAMPalette, pSequence->Meta.cbPallete * sizeof(PALETTE_ENTRY)))
@@ -500,7 +500,7 @@ bool CExpressivePixelsStorage::SequenceRead(const char *pszGUID, EXPRESSIVEPIXEL
 				}
 				else
 				{
-					pSequence->pRAMFrames = (uint8_t *)malloc(pSequence->Meta.cbFrames);
+					pSequence->pRAMFrames = (uint8_t *)TMALLOC(pSequence->Meta.cbFrames);
 					if (pSequence->pRAMFrames == NULL)
 						goto error;
 					if (!ReadBytes(pFile, &fileSize, (uint8_t *) pSequence->pRAMFrames, pSequence->Meta.cbFrames))
@@ -697,7 +697,7 @@ void CExpressivePixelsStorage::UpdateSequenceListItem(PPERSISTED_SEQUENCE_LIST p
 	// Update the GUID
 	if(pszGUID != NULL)
 	{
-		pItem->pszGUID = (char *) malloc(strlen(pszGUID) + 1);
+		pItem->pszGUID = (char *) TMALLOC(strlen(pszGUID) + 1);
 		if (pItem->pszGUID != NULL)
 			strcpy(pItem->pszGUID, pszGUID);		
 	}
@@ -712,9 +712,9 @@ void CExpressivePixelsStorage::UpdateSequenceListItem(PPERSISTED_SEQUENCE_LIST p
 		// Check to see if it hasn't been changed
 		if(strcmp(pItem->pszName, pszName) == 0)
 			return;	
-		free(pItem->pszName);				
+		TFREE(pItem->pszName);				
 	}
-	pItem->pszName = (char *) malloc(strlen(pszName) + 1);
+	pItem->pszName = (char *) TMALLOC(strlen(pszName) + 1);
 	if (pItem->pszName != NULL)
 		strcpy(pItem->pszName, pszName);
 				
@@ -742,7 +742,7 @@ void CExpressivePixelsStorage::UpdateSequenceList(UpdateSequenceListOperations o
 		}
 		
 		// Doesn't exist so add a new one
-		pCur = (PPERSISTED_SEQUENCE_LIST) malloc(sizeof(PERSISTED_SEQUENCE_LIST));
+		pCur = (PPERSISTED_SEQUENCE_LIST) TMALLOC(sizeof(PERSISTED_SEQUENCE_LIST));
 		if (pCur != NULL)
 		{
 			memset(pCur, 0x00, sizeof(PERSISTED_SEQUENCE_LIST));

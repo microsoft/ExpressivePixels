@@ -175,7 +175,7 @@ void CExpressivePixelsApp::PayloadExecute(uint8_t format)
 			uint8_t					 *pFrameBytes;
 
 			payloadLength = sizeof(BINARY_CHANNEL_RESPONSE) + sizeof(EPX_THUMBNAIL_HEADER) + (width * height * DISPLAYARRAY_BYTESPERPIXEL);			
-			uint8_t	*pPayload = (uint8_t *) malloc(payloadLength);
+			uint8_t	*pPayload = (uint8_t *) TMALLOC(payloadLength);
 			if (pPayload != NULL)
 			{
 				ACTIVE_ANIMATIONSEQUENCE activeAnimation;
@@ -201,7 +201,7 @@ void CExpressivePixelsApp::PayloadExecute(uint8_t format)
 				else
 					payloadLength = sizeof(BINARY_CHANNEL_RESPONSE);
 				DataChannelSendResponse(pPayload, payloadLength);
-				free(pPayload);
+				TFREE(pPayload);
 			}
 		}
 		break;

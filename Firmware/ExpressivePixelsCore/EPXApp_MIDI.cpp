@@ -80,7 +80,7 @@ bool CMIDIActivation::AddEntry(char *pszChannel, char *pszNote, char *pszAnimati
 		return Save();
 	}
 	
-	pNew = (MIDIACTIVATIONITEM *) malloc(sizeof(MIDIACTIVATIONITEM));
+	pNew = (MIDIACTIVATIONITEM *) TMALLOC(sizeof(MIDIACTIVATIONITEM));
 	if (pNew == NULL)
 		return false;
 	memset(pNew, 0x00, sizeof(MIDIACTIVATIONITEM));
@@ -116,7 +116,7 @@ bool CMIDIActivation::RemoveEntry(char *pszChannel, char *pszNote)
 				m_itemsHead = pCur->pNext;
 			else
 				pLast->pNext = pCur->pNext;
-			free(pDelete);
+			TFREE(pDelete);
 			return Save();
 		}
 		pLast = pCur;
@@ -165,7 +165,7 @@ void CMIDIActivation::Clear()
 	{
 		pCur = m_itemsHead;
 		m_itemsHead = pCur->pNext;
-		free(pCur);
+		TFREE(pCur);
 	}
 }
 
@@ -192,7 +192,7 @@ bool CMIDIActivation::Load()
 		
 		while (fileSize > 0)
 		{
-			pNew = (MIDIACTIVATIONITEM *) malloc(sizeof(MIDIACTIVATIONITEM));
+			pNew = (MIDIACTIVATIONITEM *) TMALLOC(sizeof(MIDIACTIVATIONITEM));
 			
 			int bytesRead = CStorage::ReadFile(pFile, pNew, sizeof(MIDIACTIVATIONITEM));
 			if (bytesRead != sizeof(MIDIACTIVATIONITEM))

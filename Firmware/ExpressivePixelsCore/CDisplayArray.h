@@ -48,7 +48,7 @@ public:
 	}
 	void Initialize(CLEDDriverBase *pCLEDControllerBase, int width, int height, int powerPin = -1);
 	void PreviewColor(uint32_t color);
-	void Process();
+	bool Process();
 	void RainbowCycle(uint8_t wait);
 	void SetBrightness(uint8_t brightness, bool overrideClamp = false);
 	void SetPixelColor(uint16_t i, uint32_t color);

@@ -244,11 +244,11 @@ void CStorage::EnumFolder(const char *pszFolder, PPERSISTED_SEQUENCE_LIST *ppFil
 			result = lfs_dir_read(&g_lfs, &lfdDir, &info);
 			if (result > 0 && info.type == LFS_TYPE_REG)
 			{
-				PPERSISTED_SEQUENCE_LIST pNewEntry = (PPERSISTED_SEQUENCE_LIST)malloc(sizeof(PERSISTED_SEQUENCE_LIST));
+				PPERSISTED_SEQUENCE_LIST pNewEntry = (PPERSISTED_SEQUENCE_LIST)TMALLOC(sizeof(PERSISTED_SEQUENCE_LIST));
 				if (pNewEntry != NULL)
 				{
 					memset(pNewEntry, 0x00, sizeof(PERSISTED_SEQUENCE_LIST));
-					pNewEntry->pszFilename = (char *)malloc(strlen(info.name) + 1);
+					pNewEntry->pszFilename = (char *)TMALLOC(strlen(info.name) + 1);
 					if (pNewEntry->pszFilename != NULL)
 					{
 						strcpy(pNewEntry->pszFilename, info.name);
@@ -274,7 +274,7 @@ void CStorage::Close(void *pFile)
 	if (g_lfsInitialized && pFile != NULL)
 	{
 		lfs_file_close(&g_lfs, (lfs_file_t *) pFile);
-		free(pFile);
+		TFREE(pFile);
 	}
 }
 
@@ -284,13 +284,13 @@ void *CStorage::CreateFile(const char *pszFilename)
 {
 	if (g_lfsInitialized)
 	{
-		lfs_file_t *pFile = (lfs_file_t *) malloc(sizeof(lfs_file_t));
+		lfs_file_t *pFile = (lfs_file_t *) TMALLOC(sizeof(lfs_file_t));
 		if (pFile != NULL)
 		{			
 			int result = lfs_file_open(&g_lfs, pFile, (const char *) epx_strupr((char *) pszFilename), LFS_O_RDWR | LFS_O_CREAT | LFS_O_TRUNC);
 			if (result >= 0)
 				return pFile;
-			free(pFile);
+			TFREE(pFile);
 		}
 	}
 	return NULL;
@@ -302,7 +302,7 @@ void *CStorage::OpenFile(const char *pszFilename, int *pFileSize)
 {
 	if (g_lfsInitialized)
 	{
-		lfs_file_t *pFile = (lfs_file_t *) malloc(sizeof(lfs_file_t));
+		lfs_file_t *pFile = (lfs_file_t *) TMALLOC(sizeof(lfs_file_t));
 		if (pFile != NULL)
 		{			
 			int result = lfs_file_open(&g_lfs, pFile, (const char *) epx_strupr((char *) pszFilename), LFS_O_RDONLY);
@@ -312,7 +312,7 @@ void *CStorage::OpenFile(const char *pszFilename, int *pFileSize)
 					*pFileSize = lfs_file_size(&g_lfs, pFile);
 				return pFile;
 			}
-			free(pFile);
+			TFREE(pFile);
 		}		
 	}
 	return NULL;
@@ -405,10 +405,10 @@ void CStorage::FreeEnumFolderListItem(PPERSISTED_SEQUENCE_LIST pItem)
 	if (pItem != NULL)
 	{
 		if (pItem->pszGUID != NULL)
-			free(pItem->pszGUID);
+			TFREE(pItem->pszGUID);
 		if (pItem->pszName != NULL)
-			free(pItem->pszName);
-		free(pItem);
+			TFREE(pItem->pszName);
+		TFREE(pItem);
 	}
 }
 
@@ -420,7 +420,7 @@ void CStorage::FreeEnumFolderListItemFilename(PPERSISTED_SEQUENCE_LIST pItem)
 	{
 		if (pItem->pszFilename != NULL)
 		{
-			free(pItem->pszFilename);
+			TFREE(pItem->pszFilename);
 			pItem->pszFilename = NULL;		
 		}
 	}

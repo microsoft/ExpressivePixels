@@ -87,7 +87,7 @@ void CExpressivePixelsApp::PayloadParseBinary(uint8_t data)
 				{
 					EPXAPP_PROTOCOL_DEVICEFRAMEPAYLOAD *pFramePayload = (EPXAPP_PROTOCOL_DEVICEFRAMEPAYLOAD *) m_szPayloadCommandValue;				
 					m_StagedAnimation.Meta.cbFrames = (pFramePayload->width * pFramePayload->height * 3);
-					m_StagedAnimation.pRAMFrames = (uint8_t *) malloc(m_StagedAnimation.Meta.cbFrames);
+					m_StagedAnimation.pRAMFrames = (uint8_t *) TMALLOC(m_StagedAnimation.Meta.cbFrames);
 					m_PayloadParseCommandSequenceFillPos = 0;
 					m_bDynamicPayloadFilling = true;
 				}			
@@ -113,7 +113,7 @@ void CExpressivePixelsApp::PayloadParseBinary(uint8_t data)
 																
 					m_CAppStorage.SequenceWriteSection(&m_StagedAnimation, SEQUENCETOKEN_NAMELEN, &pAnimationPayload->nameLength, sizeof(pAnimationPayload->nameLength));
 					m_animationPayloadStateMachine.sectionBytesRemaining = pAnimationPayload->nameLength;							
-					m_StagedAnimation.pszName = (char *) malloc(pAnimationPayload->nameLength + 1);					
+					m_StagedAnimation.pszName = (char *) TMALLOC(pAnimationPayload->nameLength + 1);					
 					m_CAppStorage.SequenceWriteSection(&m_StagedAnimation, SEQUENCETOKEN_NAME);
 									
 					// Kick of the state machine for the remainder of the payload

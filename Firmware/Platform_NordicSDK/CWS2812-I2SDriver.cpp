@@ -57,7 +57,7 @@ CWS2812_I2SDriver::CWS2812_I2SDriver(int dataPin, uint16_t numPixels) : CLEDDriv
 void CWS2812_I2SDriver::Initialize()
 {
 	CLEDDriverBase::Initialize();
-	m_pTXBuffer = (uint32_t *) malloc(sizeof(uint32_t) * m_i2sBufferSize);	
+	m_pTXBuffer = (uint32_t *) TMALLOC(sizeof(uint32_t) * m_i2sBufferSize);	
 }
 
 

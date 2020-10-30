@@ -6,11 +6,10 @@
 #include "app_timer.h"
 #include "app_util_platform.h"
 #include "nrf_log.h"
+#include "nrf_drv_clock.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
-//#include "nrf_bootloader_info.h"
 #include "EPXPlatform_Runtime.h"
-
 
 #define DEAD_BEEF                       0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -151,6 +150,34 @@ void VDDSet3V3(void)
 		while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {}
 		NVIC_SystemReset();                                                // Reset device
 	} 
+}
+
+
+/*********************************************************************************/
+/* Centralize heap functions so they can be swapped for tracing/tracking purposes
+/*********************************************************************************/
+void *tmalloc(const char *pszFile, int line, size_t siz)
+{
+  return malloc(siz);
+}
+
+
+
+void tfree(void *buf)
+{
+  free(buf);
+}
+
+
+
+void tmallocstats()
+{
+}
+
+
+
+void tmallocdump()
+{
 }
 
 

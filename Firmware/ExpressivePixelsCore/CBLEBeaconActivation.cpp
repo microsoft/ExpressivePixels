@@ -32,7 +32,7 @@ bool CBeaconActivation::AddEntry(char *pszHost, char *pszActivationBit, char *ps
 		return Save();
 	}
 	
-	pNew = (BEACONACTIVATIONITEM *) malloc(sizeof(BEACONACTIVATIONITEM));
+	pNew = (BEACONACTIVATIONITEM *) TMALLOC(sizeof(BEACONACTIVATIONITEM));
 	if (pNew == NULL)
 		return false;
 	memset(pNew, 0x00, sizeof(BEACONACTIVATIONITEM));
@@ -68,7 +68,7 @@ bool CBeaconActivation::RemoveEntry(char *pszHost, char *pszActivationBit)
 				m_itemsHead = pCur->pNext;
 			else
 				pLast->pNext = pCur->pNext;
-			free(pDelete);
+			TFREE(pDelete);
 			return Save();
 		}
 		pLast = pCur;
@@ -118,7 +118,7 @@ void CBeaconActivation::Clear()
 	{
 		pCur = m_itemsHead;
 		m_itemsHead = pCur->pNext;
-		free(pCur);
+		TFREE(pCur);
 	}
 }
 
@@ -138,7 +138,7 @@ bool CBeaconActivation::Load()
 		
 		while (fileSize > 0)
 		{
-			pNew = (BEACONACTIVATIONITEM *) malloc(sizeof(BEACONACTIVATIONITEM));
+			pNew = (BEACONACTIVATIONITEM *) TMALLOC(sizeof(BEACONACTIVATIONITEM));
 			
 			int bytesRead = CStorage::ReadFile(pFile, pNew, sizeof(BEACONACTIVATIONITEM));
 			if (bytesRead != sizeof(BEACONACTIVATIONITEM))

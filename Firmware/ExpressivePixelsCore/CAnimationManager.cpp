@@ -54,7 +54,7 @@ bool CAnimationManager::Activate(EXPRESSIVEPIXEL_SEQUENCE *pSequence)
 	if((pSequence->pRAMPalette != NULL || pSequence->pROMPalette != NULL) &&		
 		(pSequence->pFile != NULL || (pSequence->pFile == NULL &&  (pSequence->pRAMFrames != NULL || pSequence->pROMFrames != NULL))))
 	{
-		pActiveSequence = (ACTIVE_ANIMATIONSEQUENCE *)malloc(sizeof(ACTIVE_ANIMATIONSEQUENCE));
+		pActiveSequence = (ACTIVE_ANIMATIONSEQUENCE *)TMALLOC(sizeof(ACTIVE_ANIMATIONSEQUENCE));
 		if (pActiveSequence != NULL)
 		{
 			memset(pActiveSequence, 0x00, sizeof(ACTIVE_ANIMATIONSEQUENCE));
@@ -89,7 +89,7 @@ void CAnimationManager::Stop()
 	if (m_pActiveSequence != NULL)
 	{
 		ExpressivePixelSequenceFree(&m_pActiveSequence->Sequence);
-		free(m_pActiveSequence);
+		TFREE(m_pActiveSequence);
 		m_pActiveSequence = NULL;
 	}
 	m_activeDelayMillis = m_previousDelayMillis = 0;
@@ -375,17 +375,17 @@ void CAnimationManager::ExpressivePixelSequenceFree(EXPRESSIVEPIXEL_SEQUENCE *pS
 #endif		
 		if (pSequence->pRAMFrames != NULL)
 		{
-			free(pSequence->pRAMFrames);
+			TFREE(pSequence->pRAMFrames);
 			pSequence->pRAMFrames = NULL;
 		}
 		if (pSequence->pRAMPalette != NULL)
 		{
-			free(pSequence->pRAMPalette);
+			TFREE(pSequence->pRAMPalette);
 			pSequence->pRAMPalette = NULL;
 		}		
 		if (pSequence->pszName != NULL)
 		{
-			free(pSequence->pszName);
+			TFREE(pSequence->pszName);
 			pSequence->pszName = NULL;
 		}		
 		memset(pSequence, 0x00, sizeof(EXPRESSIVEPIXEL_SEQUENCE));

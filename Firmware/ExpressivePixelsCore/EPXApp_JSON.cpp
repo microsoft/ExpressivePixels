@@ -155,7 +155,7 @@ void CExpressivePixelsApp::value(char *value)
 			{
 				m_StagedAnimation.framesHexLength = atoi(value);
 				m_StagedAnimation.Meta.cbFrames = m_StagedAnimation.framesHexLength / 2;
-				m_StagedAnimation.pRAMFrames = (uint8_t *)malloc(m_StagedAnimation.Meta.cbFrames);
+				m_StagedAnimation.pRAMFrames = (uint8_t *)TMALLOC(m_StagedAnimation.Meta.cbFrames);
 				m_PayloadParseCommandSequenceFillPos = 0;
 			}
 			else if (stricmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_PIXELSHEX) == 0)
@@ -219,7 +219,7 @@ void CExpressivePixelsApp::value(char *value)
 					{
 						uint8_t nameLen = strlen(value);
 					
-						m_StagedAnimation.pszName = (char *) malloc(nameLen + 1);
+						m_StagedAnimation.pszName = (char *) TMALLOC(nameLen + 1);
 						strcpy(m_StagedAnimation.pszName, value);
 						m_CAppStorage.SequenceWriteSection(&m_StagedAnimation, SEQUENCETOKEN_NAMELEN, &nameLen, sizeof(nameLen));
 						m_CAppStorage.SequenceWriteSection(&m_StagedAnimation, SEQUENCETOKEN_NAME, (uint8_t *) value, nameLen);

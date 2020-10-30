@@ -5,7 +5,8 @@
 #include "EPXPlatform_Runtime.h"
 #ifdef VARIANT_DISPLAY_PWRMGNT
 #include "EPXPlatform_GPIO.h"
-#endif
+#endif
+
 EPX_OPTIMIZEFORDEBUGGING_ON
 
 
@@ -65,8 +66,11 @@ void CDisplayArray::Initialize(CLEDDriverBase *pCLEDControllerBase, int width, i
 	m_width = width;
 	m_height = height;		
 	m_nPowerPin = powerPin;
+
+#ifdef VARIANT_DISPLAY_PWRMGNT
 	if (powerPin != -1)
 		pinMode(m_nPowerPin, OUTPUT);
+#endif
 
 	if(m_pLEDController != NULL)
 		m_pLEDController->Initialize();
@@ -83,13 +87,15 @@ void CDisplayArray::PowerManagementReset()
 
 
 
-void CDisplayArray::Process()
+bool CDisplayArray::Process()
 {
 	if (m_lastClearRequest > 0 && (millis() - m_lastClearRequest > DISPLAYARRAY_CLEARTIMEOUT_MS))
 	{
 		PowerOff();		
 		m_lastClearRequest = 0;
+                return true;
 	}
+        return false;
 }
 
 

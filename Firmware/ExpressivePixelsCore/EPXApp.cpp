@@ -277,7 +277,7 @@ void CExpressivePixelsApp::Authenticate(char *pszChallengeResponseHex)
 			{
 				DEBUGLOGLN("\tAuthentication FAILED - keys don't compare FAILED");			
 			}
-			free(pEncryptedLocalNONCE);
+			TFREE(pEncryptedLocalNONCE);
 		}
 		else
 		{
@@ -303,7 +303,7 @@ void CExpressivePixelsApp::RegisterTriggerSource(ITriggerSource *pTriggerSource)
 	TRIGGERSOURCEITEM *pNewTriggerSource;
 
 	// Allocate new
-	pNewTriggerSource = (TRIGGERSOURCEITEM *) malloc(sizeof(TRIGGERSOURCEITEM));
+	pNewTriggerSource = (TRIGGERSOURCEITEM *) TMALLOC(sizeof(TRIGGERSOURCEITEM));
 	if (pNewTriggerSource != NULL)
 	{
 		memset(pNewTriggerSource, 0x00, sizeof(TRIGGERSOURCEITEM));
@@ -815,7 +815,10 @@ void CExpressivePixelsApp::ProcessRendering()
 	}
 	
 	// Perform display power management
-	m_CDisplayArray.Process();
+	if(m_CDisplayArray.Process())
+        {
+            tmallocstats();
+        }
 }
 
 

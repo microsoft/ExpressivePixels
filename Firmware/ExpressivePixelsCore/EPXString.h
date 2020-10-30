@@ -12,32 +12,23 @@ class EPXString
 public:
 	EPXString()
 	{
-		m_len = 0;
-		m_psz = NULL;
+            Reset();
 	}
 	
 	
 	
 	EPXString(const EPXString &__str)
 	{
+                Reset();
 		assign(__str);
 	}
 	
 	
 	
-	~EPXString()
-	{
-		if (m_psz != NULL)
-		{			
-			delete m_psz;
-			m_psz = NULL;
-		}
-	}
-
-	
 	
 	EPXString(const char* __s)
 	{
+                Reset();
 		assign(__s);
 	}
 	
@@ -45,6 +36,7 @@ public:
 	
 	EPXString(char* psz)
 	{
+                Reset();
 		assign(psz);
 	}
 
@@ -52,13 +44,23 @@ public:
 	
 	EPXString(int val)
 	{
+                Reset();
+
 		char szFmt[16];		
 		itoa(val, szFmt, 10);
 		assign(szFmt);
 	}
 
+
+
 	
-	
+	~EPXString()
+	{
+              free();
+	}
+
+
+
 	
 	const char* c_str() { return m_psz; }
 	
@@ -114,13 +116,30 @@ public:
 	}
 
 	
+
+        void Reset()
+        {
+              m_len = 0;
+              m_psz = NULL;
+        }
+
+
+        void free()
+        {
+            if (m_psz != NULL)
+            {			
+                    TFREE(m_psz);
+                    m_psz = NULL;
+            }
+        }
+
 	
 	EPXString& append(const char *psz)
 	{	
 		char *pszNew;
 		int __len = strlen(psz) + this->m_len;
 	
-		pszNew = (char *) new char[__len + 1];
+		pszNew = (char *) TMALLOC(__len + 1);
 		*pszNew = 0x00;
 		
 		if (m_psz != NULL)
@@ -128,7 +147,7 @@ public:
 		strcat(pszNew, psz);
 		
 		if (m_psz != NULL)
-			delete m_psz;
+			TFREE(m_psz);
 		m_psz = pszNew;	
 		m_len = __len;		
 		return *this;
@@ -140,8 +159,10 @@ private:
 
 	EPXString& assign(const EPXString& __str)
 	{
+                free();
+
 		m_len = __str.m_len;
-		m_psz = (char *) new char[m_len + 1];
+		m_psz = (char *) TMALLOC(m_len + 1);
 		if (m_psz != NULL)
 			strcpy(m_psz, __str.m_psz);
 		return *this;
@@ -151,8 +172,10 @@ private:
 	
 	EPXString& assign(const char *psz)
 	{
+                free();
+
 		m_len = strlen(psz);
-		m_psz = (char *) new char[m_len + 1];
+		m_psz = (char *) TMALLOC(m_len + 1);
 		if (m_psz != NULL)
 			strcpy(m_psz, psz);
 		return *this;

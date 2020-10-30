@@ -21,7 +21,6 @@ uint8_t HexToByte(char *hex, int len);
 void BytesToHex(uint8_t *p, int cb, char *psz, int stringCB);
 int freeRam();
 
-
 #ifndef epxmin
 #define epxmin(a,b) ((a)<(b)?(a):(b))
 #endif
@@ -36,16 +35,17 @@ int freeRam();
 
 #define T(a) ((const char *) a)
 
-#define DEBUGLOGLN(...) NRF_LOG_DEBUG( __VA_ARGS__)
-
 #ifdef __cplusplus
 class __FlashStringHelper;
 #define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(string_literal))
 #endif
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+        #define DEBUGLOGLN(...) NRF_LOG_DEBUG( __VA_ARGS__)
+
 	void EPXPlatform_Runtime_ControlAppTimer(bool on);
 	void EPXPlatform_Runtime_Initialize();
 	void EPXPlatform_Runtime_Process();
@@ -57,6 +57,13 @@ extern "C" {
 	uint32_t millis();
 	uint32_t millisPassed(uint32_t localMillis);
 
+	void *tmalloc(const char *pszFile, int line, size_t siz);
+	void tfree(void *buf);
+        void tmallocdump();
+        void tmallocstats();
+
+	#define TMALLOC(size) tmalloc(__FILE__, __LINE__, size)
+	#define TFREE(ptr) tfree((uint8_t *) ptr)
 	
 	char *stristr(const char *subject, const char *object);
 	int stricmp(const char *s1, const char *s2);

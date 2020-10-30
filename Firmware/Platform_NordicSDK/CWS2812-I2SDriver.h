@@ -30,7 +30,7 @@ public:
 	{
 		// Clean up I2S transmission buffer
 		if (m_pTXBuffer != NULL)
-			free(m_pTXBuffer);
+			TFREE(m_pTXBuffer);
 	}
 			
 	void Initialize();

@@ -17,7 +17,7 @@ CWS2812_SPIDriver::CWS2812_SPIDriver(SPIClass *pSPIClass, uint16_t numPixels) : 
 void CWS2812_SPIDriver::Initialize()
 {
 	CLEDDriverBase::Initialize();
-	m_pTXBuffer = (uint8_t *) malloc(m_numPixels * 12);	
+	m_pTXBuffer = (uint8_t *) TMALLOC(m_numPixels * 12);	
 }
 
 

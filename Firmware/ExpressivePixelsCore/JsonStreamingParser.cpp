@@ -40,6 +40,7 @@ void JsonStreamingParser::reset() {
     characterCounter = 0;
 	stackPos = 0;
 	unicodeHighSurrogate = 0;
+    doEmitWhitespace = false;
 }
 
 void JsonStreamingParser::setListener(JsonListener* listener) {

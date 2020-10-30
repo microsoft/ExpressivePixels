@@ -62,7 +62,7 @@ uint8_t *EPXPlatform_Crypto_Encrypt(uint8_t * pAESKey, void *p_data, size_t len)
 	err_code = nrf_crypto_aes_iv_set(&ctr_encr_128_ctx, iv);
 	APP_ERROR_CHECK(err_code);
 	
-	uint8_t *pEncrypted = (uint8_t *) malloc(len);
+	uint8_t *pEncrypted = (uint8_t *) TMALLOC(len);
 	if (pEncrypted != NULL)
 	{
 		/* Encrypt first 16 bytes */
@@ -78,7 +78,7 @@ uint8_t *EPXPlatform_Crypto_Encrypt(uint8_t * pAESKey, void *p_data, size_t len)
 		memset(iv, 0, sizeof(iv));
 
 		len_out = len;		
-		uint8_t *pDecrypted = (uint8_t *) malloc(len);
+		uint8_t *pDecrypted = (uint8_t *) TMALLOC(len);
 
 		/* Decrypt with integrated function */
 		err_code = nrf_crypto_aes_crypt(&ctr_decr_128_ctx, &g_nrf_crypto_aes_ctr_128_info, NRF_CRYPTO_DECRYPT, pAESKey, iv, pEncrypted, len, pDecrypted, &len_out);
@@ -100,7 +100,7 @@ uint8_t *EPXPlatform_Crypto_Decrypt(uint8_t * pAESKey, void *p_data, size_t len)
 	uint8_t     iv[16];
 
 	size_t len_out = len;		
-	uint8_t *pDecrypted = (uint8_t *) malloc(len);
+	uint8_t *pDecrypted = (uint8_t *) TMALLOC(len);
 	if (pDecrypted != NULL)
 	{		
 		/* Decrypt with integrated function */
