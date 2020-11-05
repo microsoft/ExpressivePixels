@@ -5,32 +5,30 @@
 
 EPX_OPTIMIZEFORDEBUGGING_ON
 
-#include <RGBmatrixPanel.h> // Hardware-specific library
-
-#define CLK  13
-#define OE   1  // TX
-#define LAT  0  // RX
-#define A   A5
-#define B   A4
-#define C   A3
-#define D   A2
-uint8_t rgbpins[] = { 6,5,9,11,10,12 };
-
-RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false, 64, rgbpins);
-// RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false, 32s, rgbpins);
-
-CAdafruitRGBMatrix_EPXDriver::CAdafruitRGBMatrix_EPXDriver(int width, int height) : CLEDDriverBase(width * height)
+CAdafruitRGBMatrix_EPXDriver::CAdafruitRGBMatrix_EPXDriver(int width, int height, uint8_t pinCLK, uint8_t pinOE, uint8_t pinLAT, uint8_t pinA, uint8_t pinB, uint8_t pinC, uint8_t pinD, uint8_t *prgbpins)
+	: CLEDDriverBase(width * height)
 {
 	m_width = width;
 	m_height = height;
 	m_nRainbowIteration = 0;
+	m_pRGBmatrixPanel = new RGBmatrixPanel(pinA, pinB, pinC, pinD, pinCLK, pinOE, pinLAT, false, width, prgbpins);
+}
+
+
+
+CAdafruitRGBMatrix_EPXDriver::~CAdafruitRGBMatrix_EPXDriver()
+{
+	if (m_pTXBuffer != NULL)
+		free(m_pTXBuffer);
+	if (m_pRGBmatrixPanel != NULL)
+		delete m_pRGBmatrixPanel;
 }
 
 
 
 void CAdafruitRGBMatrix_EPXDriver::Initialize()
 {
-	matrix.begin();
+	m_pRGBmatrixPanel->begin();
 }
 
 
@@ -55,15 +53,16 @@ void CAdafruitRGBMatrix_EPXDriver::SetPixel(uint16_t idx, uint8_t r, uint8_t g, 
 
 	y = idx / m_width;
 	x = idx - (m_width * y);
-	matrix.drawPixel(x, y, matrix.Color888(r, g, b));
+	m_pRGBmatrixPanel->drawPixel(x, y, m_pRGBmatrixPanel->Color888(r, g, b));
 }
 
 
 
 void CAdafruitRGBMatrix_EPXDriver::SetPixelColor(uint16_t idx, uint32_t color)
 {
-	
+	SetPixel(idx, (uint8_t)(color >> 16), (uint8_t)(color >>  8), (uint8_t) color);	
 }
+
 
 
 void CAdafruitRGBMatrix_EPXDriver::Clear()
@@ -99,15 +98,13 @@ uint32_t CAdafruitRGBMatrix_EPXDriver::Wheel(uint8_t WheelPos)
 void CAdafruitRGBMatrix_EPXDriver::Rainbow(uint8_t wait) 
 {
 	uint16_t i, j;
-/*
+
 	for (j = 0; j < 256; j++) 
 	{
 		for (i = 0; i < m_numPixels; i++) 			
-			m_AdaFruitNeoPixel->setPixelColor(i, Wheel((i + j) & 255));
-		//m_AdaFruitNeoPixel->show();
+			SetPixelColor(i, Wheel((i + j) & 255));
 		delay(wait);
-	}
-	*/
+	}	
 }
 
 
@@ -115,7 +112,6 @@ void CAdafruitRGBMatrix_EPXDriver::Rainbow(uint8_t wait)
 // Slightly different, this makes the rainbow equally distributed throughout
 void CAdafruitRGBMatrix_EPXDriver::RainbowCycle(uint8_t wait) 
 {
-	/*
 	uint16_t i;
 
 	if(m_nRainbowIteration >= 256 * 5)
@@ -124,10 +120,9 @@ void CAdafruitRGBMatrix_EPXDriver::RainbowCycle(uint8_t wait)
 	// 5 cycles of all colors on wheel
 	for(i = 0 ; i < m_numPixels; i++) 
 		//SetPixelColor(i, Wheel(((i * 256 / m_numPixels) + j) & 255));
-		m_AdaFruitNeoPixel->setPixelColor(i, Wheel((i + m_nRainbowIteration) & 255));	
-	m_AdaFruitNeoPixel->show();
+		SetPixelColor(i, Wheel((i + m_nRainbowIteration) & 255));	
 	delay(wait);
-*/
+
 	m_nRainbowIteration++;
 }
 
