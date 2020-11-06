@@ -30,10 +30,11 @@ public:
 private:
 	uint32_t Wheel(uint8_t WheelPos);
 	
-	RGBmatrixPanel			*m_pRGBmatrixPanel;
-	uint32_t				*m_pTXBuffer;
-	uint32_t				m_nRainbowIteration;
-	int 					m_width; 
-	int 					m_height;
+	Adafruit_Protomatter				*m_pRGBmatrixPanel;
+	uint32_t							*m_pTXBuffer;
+	uint32_t							m_nRainbowIteration;
+	int 								m_width; 
+	int 								m_height;
+	int 								brightness;
 };
 
