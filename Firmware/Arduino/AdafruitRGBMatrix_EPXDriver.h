@@ -13,7 +13,7 @@ class CAdafruitRGBMatrix_EPXDriver : public CLEDDriverBase
 {
 	
 public:
-	CAdafruitRGBMatrix_EPXDriver(int width, int height, uint8_t pinClk, uint8_t pinOE, uint8_t pinLAT, uint8_t pinA, uint8_t pinB, uint8_t pinC, uint8_t pinD, uint8_t *prgbpins);	
+	CAdafruitRGBMatrix_EPXDriver(int width, int height);	
 	~CAdafruitRGBMatrix_EPXDriver();
 	
 	void Initialize();
