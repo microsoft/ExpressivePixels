@@ -76,7 +76,7 @@ CAdafruitRGBMatrix_EPXDriver::CAdafruitRGBMatrix_EPXDriver(int width, int height
 	m_nRainbowIteration = 0;
 	brightness = 255;
 	m_pRGBmatrixPanel = new Adafruit_Protomatter(
-		64,							// Width of matrix (or matrix chain) in pixels
+		m_width,					// Width of matrix (or matrix chain) in pixels
 		4,							// Bit depth, 1-6
 		1, rgbPins,					// # of matrix chains, array of 6 RGB pins for each
 		4, addrPins,				// # of address pins (height is inferred), array of pins
