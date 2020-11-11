@@ -31,18 +31,20 @@ void setup()
 #ifdef ADAFRUIT_DOTSTAR
     // For a APA102 type of LED
     CAdafruitDotStar_EPXDriver *pDotStarDriver = new CAdafruitDotStar_EPXDriver(PIN_A2, PIN_A1, DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT);
-#elif defined (ADAFRUIT_RGBMATRIX)
-    // For Adafruit RGBMatrix displays
-    CAdafruitRGBMatrix_EPXDriver *pRGBMatrixDriver = new CAdafruitRGBMatrix_EPXDriver(DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT);
-#else
+    g_CDisplayArray.Initialize(pDotStarDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);
+#elif defined(ADAFRUIT_NEOPIXEL)
     // For WS2812 LEDs
-    CAdafruitNeoPixel_EPXDriver *pNeoPixel_EPXDriver = new CAdafruitNeoPixel_EPXDriver(PIN_STRIP, DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT);
+    CAdafruitNeoPixel_EPXDriver *pNeoPixelDriver = new CAdafruitNeoPixel_EPXDriver(PIN_NEOPIXEL, DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT);
+    g_CDisplayArray.Initialize(pNeoPixelDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);
+#elif defined(ADAFRUIT_PROTOMATTER)
+    // For Protomatter RGB Matrixes
+    CAdafruitRGBMatrix_EPXDriver *pRGBMatrixDriver = new CAdafruitRGBMatrix_EPXDriver(DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT);
+    g_CDisplayArray.Initialize(pRGBMatrixDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);
 #endif
 
     // Configure display and array
     g_CDisplayTopology.SetMatrix(g_displayArrayPixelTopology, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT);
     g_CAnimator.SetTopology(&g_CDisplayTopology);
-    g_CDisplayArray.Initialize(pRGBMatrixDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);
     g_CDisplayArray.SetBrightness(10);
 
     // Activate the example animation

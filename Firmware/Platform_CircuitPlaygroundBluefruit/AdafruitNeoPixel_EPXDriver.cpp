@@ -3,6 +3,7 @@
 #include "EPXPlatform_Runtime.h"
 #include "AdafruitNeoPixel_EPXDriver.h"
 
+EPX_OPTIMIZEFORDEBUGGING_ON
 
 
 CAdafruitNeoPixel_EPXDriver::CAdafruitNeoPixel_EPXDriver(int dataPin, uint16_t numPixels) : CLEDDriverBase(numPixels)

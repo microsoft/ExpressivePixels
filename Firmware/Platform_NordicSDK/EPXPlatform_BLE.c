@@ -19,10 +19,9 @@
 #include "nrf_ble_gatt.h"
 #include "nrf_ble_scan.h"
 #include "app_timer.h"
-#include "ble_nus.h"
+#include "EPXPlatform_BLE_DualNUS.h"
 #include "app_uart.h"
 #include "app_util_platform.h"
-//#include "nrf_bootloader_info.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -52,7 +51,6 @@
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                       /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
-
 
 BLE_NUS_DEF(g_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT); /**< BLE NUS service instance. */
 NRF_BLE_GATT_DEF(g_gatt); /**< GATT module instance. */
@@ -151,18 +149,19 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
 	{
 		DEBUGLOGLN("BLENUS Communication READY");
 		if (g_pfnCommunicationReady != NULL)			
-			(*g_pfnCommunicationReady)(g_hostInstance);
+			(*g_pfnCommunicationReady)(g_hostInstance, p_evt->altCharacteristic);
 	}		
 	else if(p_evt->type == BLE_NUS_EVT_RX_DATA)
 	{
 		//NRF_LOG_DEBUG("Received %d bytes data from BLE NUS", p_evt->params.rx_data.length);
 		//NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
 		for(uint32_t i = 0 ; i < p_evt->params.rx_data.length ; i++)
-			(*g_pfnByteReceived)(g_hostInstance, p_evt->params.rx_data.p_data[i]);			
+			(*g_pfnByteReceived)(g_hostInstance, p_evt->altCharacteristic, p_evt->params.rx_data.p_data[i]);			
 	}
 }
 
 	
+
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -727,7 +726,7 @@ void EPXPlatform_BLE_AdvertizingUpdate()
 
 
 
-size_t EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb)
+size_t EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb, bool altChannel)
 {
 	uint8_t *pPayload = (uint8_t *)pvPayload;
 	size_t requestBytesToWrite = cb, bytesWritten = 0;
@@ -739,7 +738,7 @@ size_t EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb)
 	//NRF_LOG_DEBUG("BLESendData %d bytes", cb);			
 	memset(&hvx_params, 0, sizeof(hvx_params));
 
-	hvx_params.handle = g_nus.tx_handles.value_handle;
+	hvx_params.handle = altChannel ? g_nus.atx_handles.value_handle : g_nus.tx_handles.value_handle;
 	hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
 	while (cb > 0)
 	{

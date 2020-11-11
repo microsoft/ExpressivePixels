@@ -10,7 +10,8 @@ extern "C" {
 enum EPXGPIOStateChange
 {
 	EPXGPIO_PIN_STATECHANGE = 0,
-	EPXGPIO_BUTTON_PUSHED
+	EPXGPIO_BUTTON_PUSHED,
+	EPXGPIO_BUTTON_RELEASED
 };
 	
 #define EPXGPIO_LOW             (0x0)
@@ -24,7 +25,9 @@ typedef void(*PFN_EPXGPIO_EVENTHANDLER)(void *pinstance, uint8_t event, uint16_t
 typedef void(*PFN_EPX_BUTTON_PUSHED)(void *pinstance);	
 
 void EPXPlatform_GPIO_ButtonClickConfigure(uint32_t ulPin);
-void EPXPlatform_GPIO_Initialize(void *pinstance, PFN_EPXGPIO_EVENTHANDLER eventHandler);
+void EPXPlatform_GPIO_ButtonClickFinalize();
+bool EPXPlatform_GPIO_Initialize(void *pinstance, PFN_EPXGPIO_EVENTHANDLER eventHandler);
+uint32_t EPXPlatform_GPIO_PinRead(uint32_t ulPin);
 void EPXPlatform_GPIO_PinConfigure(uint32_t ulPin, uint32_t type);	
 void EPXPlatform_GPIO_PinWrite(uint32_t ulPin, uint32_t ulVal);
 

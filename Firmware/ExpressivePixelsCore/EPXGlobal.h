@@ -36,7 +36,7 @@ enum PowerStates
 
 typedef void(*PFN_EPX_TRACE_EVENT)(void *pinstance, char *pszTrace);
 typedef void(*PFN_EPX_POWERSTATE_CHANGED)(void *pinstance, uint8_t state, bool set);
-typedef void(*PFN_EPX_COMMUNICATION_READY)(void *pinstance);
+typedef void(*PFN_EPX_COMMUNICATION_READY)(void *pinstance, bool altChannel);
 typedef void(*PFN_EPX_CONNECTIONSTATE_CHANGED)(void *pinstance, uint8_t state, bool set);
 typedef void(*PFN_EPX_BEACONRECEIVED)(void *pinstance, char *pszHost, uint8_t beaconData);
 

@@ -2,6 +2,8 @@
 // Licensed under the MIT license.
 #include "EPXPlatform_CByteQueue.h"
 
+EPX_OPTIMIZEFORDEBUGGING_ON
+
 
 CByteQueue::CByteQueue()
 {

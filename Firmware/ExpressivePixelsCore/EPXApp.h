@@ -47,6 +47,7 @@ typedef struct
 #include "EPXApp_Trigger_Switch.h"
 #include "CSerialChannelBase.h"
 #include "CCOBSProtocol.h"
+#include "CStringProtocol.h"
 	
 
 #define	VERSION_MAJOR						1
@@ -155,7 +156,7 @@ enum PendingConnectionStateChanges : uint8_t
 
 
 
-class CExpressivePixelsApp : public JsonListener, public CCOBSProtocol
+class CExpressivePixelsApp : public JsonListener, public CCOBSProtocol, public CStringProtocol
 {
 public:
 	CExpressivePixelsApp();
@@ -204,7 +205,7 @@ private:
 	static void		TraceEventHandler(void *pinstance, char *pszTrace);
 	static void		SystemGPIOEventHandler(void *pinstance, uint8_t event, uint16_t pin, uint16_t value);
 	static void		SystemPowerStateChanged(void *pinstance, uint8_t state, bool set);
-	static void		SystemCommunicationReady(void *pinstance);
+	static void		SystemCommunicationReady(void *pinstance, bool altChannel);
 	static void		SystemConnectionStateChanged(void *pinstance, uint8_t state, bool set);
 	static void		BLE_BeaconReceived(void *pinstance, char *pszHost, uint8_t beaconData);
 	static void		USBQueue_PurgeRequestHandler(void *pinstance);
@@ -243,6 +244,7 @@ private:
 	bool				m_bInvokedAutoPlay;
 	bool				m_bBLEConnected;
 	bool				m_PendingFeatureButtonPushed;
+	bool				m_bAlternateBLEChannel;
 	int					m_bootUpRAM;
 	int					m_renderMode;
 	char				*m_pPendingBeaconActivationHost;
@@ -274,6 +276,10 @@ private:
 	void				PayloadParseBinary(uint8_t data);
 	void				PayloadProcessFromJSON(const char *pszJSON);
 	void				PayloadReset();
+	
+	void				StringPayloadFinalized();
+	void				StringPayloadParse(uint8_t data);
+	void				StringPayloadReset();
 	
 	void				PayloadExecute(uint8_t format);
 	void				LogActiveCommand();

@@ -15,6 +15,7 @@ static uint8_t g_magicNAK[8] = {0xA1, 0x85, 0x29, 0xB8, 0xBC, 0xED, 0xFE, 0x62 }
 
 CCOBSProtocol::CCOBSProtocol()
 {
+	m_pCActiveSerialChannel = NULL;
 	m_ProtocolVersion = 0;
 	ProtocolReset();
 }
@@ -28,7 +29,6 @@ void CCOBSProtocol::ProtocolReset()
 	m_channelMaxCacheLoad = 0;
 	m_COBS_StagingFillIndex = 0;
 }
-
 
 
 
@@ -167,7 +167,7 @@ void CCOBSProtocol::ProtocolEncodeAndSend(uint8_t payloadFormat, uint8_t *payloa
 		
 			COBS_Encode(cobsStagingBuffer, lengthStagingFrame, cobsProcessedBuffer);
 			cobsProcessedBuffer[lengthEncodedFrame - 1] = 0x00;			
-			m_pCActiveSerialChannel->write((void *) cobsProcessedBuffer, lengthEncodedFrame);
+			m_pCActiveSerialChannel->write((void *) cobsProcessedBuffer, lengthEncodedFrame, false);
 
 			// Next frame is just a data frame
 			frameType = EPX_FRAMETYPE_DATA;

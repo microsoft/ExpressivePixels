@@ -84,7 +84,8 @@ void CExpressivePixelsApp::value(char *value)
 		if (stricmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_CONSOLECOMMAND) == 0)
 			m_TTYValue = m_PayloadJSONListnerTracking_Value;
 		/**** COMMAND Key ****/	
-		else if(stricmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_COMMAND) == 0)
+		else if(stricmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_COMMAND) == 0 ||
+			stricmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_CMD) == 0)
 		{
 			if (stricmp(m_PayloadJSONListnerTracking_Value.c_str(), (const char *)COMMAND_CONSOLE_COMMAND) == 0)
 				m_PayloadActiveCommand = PAYLOADCOMMAND_TTY;
@@ -96,7 +97,8 @@ void CExpressivePixelsApp::value(char *value)
 				m_PayloadActiveCommand = PAYLOADCOMMAND_SETKEY;
 			else if (stricmp(m_PayloadJSONListnerTracking_Value.c_str(), (const char *)COMMAND_CONNECT_HEADERRQ) == 0)
 				m_PayloadActiveCommand = PAYLOADCOMMAND_CONNECT_HEADERRQ;
-			else if (stricmp(m_PayloadJSONListnerTracking_Value.c_str(), (const char *)COMMAND_ENUMERATE_ANIMATIONS) == 0)
+			else if (stricmp(m_PayloadJSONListnerTracking_Value.c_str(), (const char *)COMMAND_ENUMERATE_ANIMATIONS) == 0 ||
+					 stricmp(m_PayloadJSONListnerTracking_Value.c_str(), (const char *)COMMAND_ENUMERATE_ANIMATIONS2) == 0)
 				m_PayloadActiveCommand = PAYLOADCOMMAND_ENUMERATE_ANIMATIONS;
 			else if (stricmp(m_PayloadJSONListnerTracking_Value.c_str(), (const char *)COMMAND_PREVIEW_COLOR) == 0)
 				m_PayloadActiveCommand = PAYLOADCOMMAND_PREVIEW_COLOR;
@@ -249,6 +251,19 @@ void CExpressivePixelsApp::value(char *value)
 			else if (stricmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_PIXELHEX) == 0)
 				strncpy(m_szPayloadCommandValue, value, epxmin(strlen(value), MAX_COMMAND_VALUE - 1));
 		}	
+		/***********************************/
+		/* Simple String Protocol commands */
+		/***********************************/
+		else if(strcasecmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_PLAY) == 0)
+		{
+			m_PayloadActiveCommand = PAYLOADCOMMAND_PLAY_STORED_ANIMATION8_BYNAME;
+			strncpy(m_szPayloadCommandValue, value, epxmin(strlen(value), MAX_COMMAND_VALUE - 1));			
+		}		
+		else if(strcasecmp(m_PayloadJSONListnerTracking_Key.c_str(), (const char *)JSONKEY_BRIGHTNESS) == 0)
+		{
+			m_PayloadActiveCommand = PAYLOADCOMMAND_DISPLAY_BRIGHTNESS;
+			m_nPayloadCommandValue = atoi(m_PayloadJSONListnerTracking_Value.c_str());
+		}
 
 	}
 }

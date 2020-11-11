@@ -4,7 +4,7 @@
 #include "EPXPlatform_I2S.h"
 #include "CWS2812-I2SDriver.h"
 
-
+EPX_OPTIMIZEFORDEBUGGING_ON
 
 void CWS2812_I2SDriver::FillI2SDriverBuffer()
 {

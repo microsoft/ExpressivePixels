@@ -44,7 +44,7 @@ public:
 	
 	EPXString(int val)
 	{
-                Reset();
+		Reset();
 
 		char szFmt[16];		
 		itoa(val, szFmt, 10);

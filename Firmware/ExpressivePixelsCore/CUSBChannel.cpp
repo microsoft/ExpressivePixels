@@ -59,7 +59,7 @@ void CUSBChannel::USB_ByteReceived(void *pinstance, uint8_t data)
 
 
 
-size_t CUSBChannel::write(void *pvPayload, uint16_t cb)
+size_t CUSBChannel::write(void *pvPayload, uint16_t cb, bool altChannel)
 {
 	return EPXPlatform_USB_Write((uint8_t *)pvPayload, cb);
 }
@@ -93,6 +93,6 @@ void CUSBChannel::USB_ConnectionStageChanged(void *pinstance, bool connected)
 void CUSBChannel::USB_CommunicationReady(void *pinstance)
 {
 	CUSBChannel *pthis = (CUSBChannel *) pinstance; 	
-	(*pthis->m_pfnEPXCommunicationReady)(pthis->m_pAppInstance);
+	(*pthis->m_pfnEPXCommunicationReady)(pthis->m_pAppInstance, false);
 }
 

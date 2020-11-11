@@ -3,7 +3,7 @@
 #include <memory.h>
 #include "EPXPlatform_I2S.h"
 
-
+EPX_OPTIMIZEFORDEBUGGING_ON
 
 void EPXPlatform_I2S_Configure(uint16_t pin)
 {

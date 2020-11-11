@@ -1,26 +1,34 @@
+// Uncomment the following lines for an Adafruit RGB LED Matrix
+// #define ADAFRUIT_PROTOMATTER
 
-// Uncomment the following line(s) if you're using a LED RGB Matrix
-#define ADAFRUIT_RGBMATRIX
-#define DISPLAY_ADARGBMATRIX64x32
+// Uncomment the following line for Adafruit Dotstar
+// #define ADAFRUIT_DOTSTAR
 
 // Uncomment the following lines if you're using NeoPixels
-// #define ADAFRUIT_NEOPIXEL
+#define ADAFRUIT_NEOPIXEL
+
+// Uncomment the following line for the Adafruit Featherwing Dotstar
+// #define DISPLAY_FEATHERWINGDOTSTAR
+
+// Uncomment the following line for a Flexible 16x16 Matrix
+// #define DISPLAY_FLEX16X16
+
+// Uncomment the following line for a 64x32 display
+// #define DISPLAY_ADARGBMATRIX64x32
+
+// Uncomment the following line for Sparklet 16x16 Squre
+// #define DISPLAY_SPARKLETSQUARE16X16
+
 // Specify the data pin the LED array is connected to 
-// #define PIN_STRIP            PIN_A2
-
-// Uncomment the following line if you're using Dotstar
-// #ifdef ADAFRUIT_DOTSTAR
-
-// Uncomment the following line if you're using the sparklet square
-#define DISPLAY_SPARKLETSQUARE16X16
+// #define PIN_STRIP PIN_A2
 
 
 #ifdef ADAFRUIT_DOTSTAR
-    #include <AdafruitDotStar_EPXDriver.h>
-#elif defined (ADAFRUIT_RGBMATRIX)
-    #include <AdafruitRGBMatrix_EPXDriver.h>
-#elif defined (ADAFRUIT_NEOPIXEL)
-    #include <AdafruitNeoPixel_EPXDriver.h>
+  #include "AdafruitDotStar_EPXDriver.h"
+#elif defined(ADAFRUIT_NEOPIXEL)
+  #include <AdafruitNeoPixel_EPXDriver.h>
+#elif defined(ADAFRUIT_PROTOMATTER)
+  #include <AdafruitRGBMatrix_EPXDriver.h>
 #endif
 
 

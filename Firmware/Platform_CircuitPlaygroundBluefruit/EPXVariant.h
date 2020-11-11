@@ -10,9 +10,8 @@ enum VariantCapabilities
 
 
 #define EPX_DEVICEMODEL			"CircuitEPXDev"
-#define DISPLAYARRAY_WIDTH		18
-#define DISPLAYARRAY_HEIGHT		18
 #define BLE_DEFAULT_DEVICE_NAME "CircuitEPX"                               /**< Name of device. Will be included in the advertising data. */
+#define EPX_FWVERSIONSRC 		""
 
 #define GPIO_PIN_STATUSLED		13
 #define GPIO_PIN_FLASHRAM_CS	0
@@ -28,4 +27,4 @@ enum VariantCapabilities
 #define FLASH_SPI_PORT			SPI                   // What SPI port is Flash on?
 #define VARIANT_CAPABILITIES	(VARIANTCAPABILITY_STORAGE | VARIANTCAPABILITY_PREVIEW)
 
-
+extern char g_szDEFAULT_BLE_NAME[];

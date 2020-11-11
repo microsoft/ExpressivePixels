@@ -1,0 +1,150 @@
+﻿<Application x:Class="Microsoft.Research.ExpressivePixelsActivatorWPF.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Microsoft.ExpressivePixels.Converters"
+             xmlns:controls="clr-namespace:Microsoft.ExpressivePixels.Controls"      
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Microsoft.Research.EmbeddedDeviceConnectivity.SampleWPF;component/Styles/ExpressivePixelSliderStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <ControlTemplate x:Key="ConnectPlug">
+                <Canvas Width="15" Height="15">
+                    <Path Stroke="Transparent" Fill="#388E21" StrokeThickness="0.5" Data="M10.905,2.806l-1.59,1.585l-1.323,-1.328l1.586,-1.585c0.338,-0.338 0.338,-0.883 0,-1.222c-0.338,-0.338 -0.883,-0.338 -1.222,0l-1.585,1.585l-0.588,-0.588c-0.16,-0.161 -0.68,-0.474 -1.221,0l-2.47,2.468c-1.488,1.487 -1.675,3.799 -0.551,5.491l-1.687,1.69c-0.338,0.338 -0.338,0.883 0,1.222c0.338,0.338 0.883,0.338 1.221,0l1.687,-1.686c0.711,0.473 1.539,0.727 2.41,0.728c1.162,0 2.257,-0.452 3.082,-1.276l2.469,-2.468c0.338,-0.338 0.339,-0.883 0,-1.222l-0.587,-0.587l1.586,-1.585c0.338,-0.338 0.338,-0.884 0,-1.222c-0.334,-0.338 -0.883,-0.338 -1.217,0Zm-3.473,5.862c-0.499,0.499 -1.158,0.769 -1.86,0.769c-0.701,-0.001 -1.365,-0.276 -1.859,-0.77c-1.027,-1.028 -1.027,-2.697 0.001,-3.72l1.86,-1.86l3.719,3.721l-1.861,1.86Z"/>
+                </Canvas>
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="DisconnectPlug">
+                <Canvas Width="15" Height="15">
+                    <Path Stroke="Transparent" Fill="#388E21" StrokeThickness="0.5" Data="M10.905,2.806l-1.59,1.585l-1.323,-1.328l1.586,-1.585c0.338,-0.338 0.338,-0.883 0,-1.222c-0.338,-0.338 -0.883,-0.338 -1.222,0l-1.585,1.585l-0.588,-0.588c-0.16,-0.161 -0.68,-0.474 -1.221,0l-2.47,2.468c-1.488,1.487 -1.675,3.799 -0.551,5.491l-1.687,1.69c-0.338,0.338 -0.338,0.883 0,1.222c0.338,0.338 0.883,0.338 1.221,0l1.687,-1.686c0.711,0.473 1.539,0.727 2.41,0.728c1.162,0 2.257,-0.452 3.082,-1.276l2.469,-2.468c0.338,-0.338 0.339,-0.883 0,-1.222l-0.587,-0.587l1.586,-1.585c0.338,-0.338 0.338,-0.884 0,-1.222c-0.334,-0.338 -0.883,-0.338 -1.217,0Zm-3.473,5.862c-0.499,0.499 -1.158,0.769 -1.86,0.769c-0.701,-0.001 -1.365,-0.276 -1.859,-0.77c-1.027,-1.028 -1.027,-2.697 0.001,-3.72l1.86,-1.86l3.719,3.721l-1.861,1.86Z"/>
+                    <Path Stroke="Red" Fill="Transparent" StrokeThickness="2" Data="M1.497,1.523c0.129,0.132 9.096,9.238 9.269,9.416" />
+                </Canvas>
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="DeviceTypeImage_SERIAL">
+                <Path Stroke="{TemplateBinding controls:ButtonAttachedBehavior.GlyphForeground}" Fill="{TemplateBinding controls:ButtonAttachedBehavior.GlyphForeground}" Data="M9.853,11.123l6.341,-11.123l6.503,11.042l-4.699,0.03l-0.067,26.954c0.381,-0.212 0.783,-0.418 1.196,-0.631c2.677,-1.377 6.054,-3.115 6.179,-10.773l-3.296,0l0,-9.436l9.49,0l0,9.436l-2.94,0c-0.129,9.621 -4.491,11.865 -7.946,13.642c-1.249,0.642 -2.323,1.195 -2.694,2.181l-0.035,14.089c2.432,0.661 4.13,2.877 4.125,5.385c0,0.004 0,0.008 0,0.012c0,3.055 -2.528,5.569 -5.601,5.569c-0.004,0 -0.008,0 -0.013,0c-0.004,0 -0.008,0 -0.012,0c-3.073,0 -5.601,-2.514 -5.601,-5.569c0,-0.004 0,-0.008 0,-0.012c-0.005,-2.328 1.457,-4.424 3.652,-5.234l0.022,-8.758c-1.11,-0.619 -2.171,-1.038 -3.144,-1.422c-4.304,-1.702 -7.225,-2.858 -7.284,-12.828c-2.383,-0.677 -4.036,-2.862 -4.029,-5.327c0,-3.052 2.504,-5.541 5.573,-5.541c3.069,0 5.573,2.489 5.573,5.541c0,2.492 -1.626,4.566 -3.864,5.277c0.045,7.834 2.14,8.664 5.225,9.883c0.622,0.246 1.276,0.504 1.958,0.812l0.083,-33.229l-4.695,0.03Z"/>
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="DeviceTypeImage_BLUETOOTH">
+                <Path Stroke="{TemplateBinding controls:ButtonAttachedBehavior.GlyphForeground}" Fill="Transparent" StrokeThickness="5" Data="M2.425,24.386l32.91,32.91l-16.324,17.903l0,-67.399l16.324,17.902l-32.91,32.91"/>
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="BrightnessDim">
+                <Canvas xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="DrawingEMF_68" Width="325" Height="325" Canvas.Left="0" Canvas.Top="0">
+                    <Path x:Name="_10_sub_paths__56_points__69" Width="190" Height="190" Canvas.Left="68.5842" Canvas.Top="66.271" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 163.571,66.271C 111.095,66.271 68.5842,108.807 68.5842,161.284C 68.5842,213.734 111.095,256.271 163.571,256.271C 216.021,256.271 258.584,213.734 258.584,161.284C 258.584,108.807 216.021,66.271 163.571,66.271 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__70" Width="120" Height="120.001" Canvas.Left="103.564" Canvas.Top="101.231" Stretch="Fill" Fill="{TemplateBinding Background}" Data="F1 M 163.581,221.232C 130.43,221.232 103.564,194.365 103.564,161.214C 103.564,128.064 130.43,101.231 163.581,101.231C 196.699,101.231 223.564,128.065 223.564,161.214C 223.564,194.364 196.699,221.232 163.581,221.232 Z "/>
+                    <Rectangle x:Name="_10_sub_paths__56_points__71" Width="36.1342" Height="11.4388" Canvas.Left="144.88" Canvas.Top="41.1751" Stretch="Fill" Fill="{TemplateBinding Foreground}"/>
+                    <Rectangle x:Name="_10_sub_paths__56_points__72" Width="36.1342" Height="11.4388" Canvas.Left="144.88" Canvas.Top="269.561" Stretch="Fill" Fill="{TemplateBinding Foreground}"/>
+                    <Rectangle x:Name="_10_sub_paths__56_points__73" Width="11.4388" Height="36.1342" Canvas.Left="42.8945" Canvas.Top="143.547" Stretch="Fill" Fill="{TemplateBinding Foreground}"/>
+                    <Rectangle x:Name="_10_sub_paths__56_points__74" Width="11.4388" Height="36.1342" Canvas.Left="271.561" Canvas.Top="142.88" Stretch="Fill" Fill="{TemplateBinding Foreground}"/>
+                    <Path x:Name="_10_sub_paths__56_points__75" Width="33.5505" Height="33.727" Canvas.Left="65.5054" Canvas.Top="64.417" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 73.6346,98.144L 99.0559,72.4646L 90.9267,64.417L 65.5054,90.0965L 73.6346,98.144 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__76" Width="33.5506" Height="33.727" Canvas.Left="226.839" Canvas.Top="225.75" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 234.968,259.477L 260.389,233.798L 252.26,225.75L 226.839,251.43L 234.968,259.477 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__77" Width="33.7339" Height="33.5435" Canvas.Left="226.834" Canvas.Top="63.133" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 226.834,71.2654L 252.523,96.6765L 260.568,88.544L 234.878,63.133L 226.834,71.2654 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__78" Width="33.7339" Height="33.5435" Canvas.Left="65.747" Canvas.Top="225.509" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 65.747,233.641L 91.4366,259.052L 99.4809,250.92L 73.7913,225.509L 65.747,233.641 Z "/>
+                </Canvas>
+
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="BrightnessBright">
+                <Canvas xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="DrawingEMF_57" Width="325" Height="325" Canvas.Left="0" Canvas.Top="0">
+                    <Rectangle x:Name="_10_sub_paths__56_points__58" Width="54.211" Height="36.1342" Canvas.Left="0" Canvas.Top="144.309" Stretch="Fill" Fill="{TemplateBinding Foreground}" />
+                    <Rectangle x:Name="_10_sub_paths__56_points__59" Width="36.1342" Height="54.211" Canvas.Left="144.556" Canvas.Top="-0.246063" Stretch="Fill" Fill="{TemplateBinding Foreground}" />
+                    <Path x:Name="_10_sub_paths__56_points__60" Width="63.8765" Height="63.8961" Canvas.Left="34.8599" Canvas.Top="226.264" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 34.8599,264.593L 60.4063,290.16L 98.7364,251.83L 73.1892,226.264L 34.8599,264.593 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__61" Width="63.8765" Height="63.8765" Canvas.Left="226.53" Canvas.Top="34.6131" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 290.406,60.1602L 264.84,34.6131L 226.53,72.9432L 252.056,98.4896L 290.406,60.1602 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__62" Width="63.8765" Height="63.8772" Canvas.Left="34.8599" Canvas.Top="34.6131" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 98.7364,72.9432L 60.4063,34.6131L 34.8599,60.1602L 73.1892,98.4903L 98.7364,72.9432 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__63" Width="63.8765" Height="63.8961" Canvas.Left="226.53" Canvas.Top="226.263" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 226.53,251.829L 264.84,290.159L 290.406,264.592L 252.056,226.263L 226.53,251.829 Z "/>
+                    <Rectangle x:Name="_10_sub_paths__56_points__64" Width="54.2313" Height="36.1342" Canvas.Left="271.035" Canvas.Top="144.309" Stretch="Fill" Fill="{TemplateBinding Foreground}"/>
+                    <Rectangle x:Name="_10_sub_paths__56_points__65" Width="36.1342" Height="54.211" Canvas.Left="144.556" Canvas.Top="270.789" Stretch="Fill" Fill="{TemplateBinding Foreground}"/>
+                    <Path x:Name="_10_sub_paths__56_points__66" Width="190" Height="190" Canvas.Left="67.9367" Canvas.Top="67.2007" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="F1 M 162.923,67.2007C 110.447,67.2007 67.9367,109.737 67.9367,162.214C 67.9367,214.664 110.447,257.201 162.923,257.201C 215.373,257.201 257.937,214.663 257.937,162.214C 257.937,109.737 215.373,67.2007 162.923,67.2007 Z "/>
+                    <Path x:Name="_10_sub_paths__56_points__67" Width="120" Height="120.001" Canvas.Left="102.917" Canvas.Top="102.16" Stretch="Fill" Fill="{TemplateBinding Background}" Data="F1 M 162.933,222.161C 129.783,222.161 102.917,195.295 102.917,162.144C 102.917,128.994 129.783,102.16 162.933,102.16C 196.051,102.16 222.917,128.995 222.917,162.144C 222.917,195.293 196.051,222.161 162.933,222.161 Z "/>
+                </Canvas>
+            </ControlTemplate>
+
+            <SolidColorBrush x:Key="AppObjectForegroundActive" Color="#CCCCCC"/>
+            <SolidColorBrush x:Key="AppObjectForegroundInactive" Color="DimGray"/>
+            <SolidColorBrush x:Key="BluetoothBlueColor" Color="#14468F"/>
+
+            <converters:EmptyStringToVisibilityConverter x:Key="EmptyStringToVisibilityConverter" />
+            <converters:TrueFalseBrushConverter x:Key="AppObjectForegroundActiveBrushConverter" TrueBrush="{StaticResource AppObjectForegroundActive}" FalseBrush="{StaticResource AppObjectForegroundInactive}"/>
+            <converters:BoolInverter x:Key="BoolInverter" />
+            <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:EnumStateToStringConverter x:Key="EnumStateToStringConverter" />
+            <converters:EnumStringToTemplateConverter x:Key="EnumStringToTemplateConverter" />
+            <converters:BrightnessToSliderValueConverter x:Key="BrightnessToSliderValueConverter" />
+
+
+            <Style x:Key="OvalIconAndTextButtonStyle" TargetType="Button">
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Background" Value="#4C4C4C"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="controls:ButtonAttachedBehavior.GlyphForeground" Value="White"/>
+                <Setter Property="controls:ButtonAttachedBehavior.LabelMargin" Value="0,0,0,0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="RootGrid" >
+                                <Rectangle Fill="{TemplateBinding Background}" StrokeThickness="0" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" RadiusX="{TemplateBinding controls:ButtonAttachedBehavior.RoundedRadius}" RadiusY="{TemplateBinding controls:ButtonAttachedBehavior.RoundedRadius}"/>
+
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Grid>
+                                            <TextBlock x:Name="PART_ButtonTextGlyph" FontFamily="Segoe MDL2 Assets" FontSize="{TemplateBinding FontSize}" Text="{TemplateBinding controls:ButtonAttachedBehavior.Glyph}" Foreground="{TemplateBinding controls:ButtonAttachedBehavior.GlyphForeground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                            <Viewbox Height="{TemplateBinding controls:ButtonAttachedBehavior.GlyphContentHeight}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <ContentControl Template="{TemplateBinding controls:ButtonAttachedBehavior.GlyphContent}"/>
+                                            </Viewbox>
+                                        </Grid>
+
+                                        <TextBlock x:Name="PART_ButtonLabel" FontFamily="Segoe UI" FontSize="{TemplateBinding FontSize}" Text="{TemplateBinding controls:ButtonAttachedBehavior.Label}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding controls:ButtonAttachedBehavior.LabelMargin}"/>
+                                    </StackPanel>
+
+                                    <Rectangle x:Name="FocusVisualWhite" IsHitTestVisible="False" Opacity="0" StrokeDashOffset="1.5" StrokeEndLineCap="Square" Stroke="White" StrokeDashArray="1,1" Width="{Binding ElementName=RootGrid, Path=ActualWidth}" Height="{Binding ElementName=RootGrid, Path=ActualHeight}" RadiusX="{TemplateBinding controls:ButtonAttachedBehavior.RoundedRadius}" RadiusY="{TemplateBinding controls:ButtonAttachedBehavior.RoundedRadius}"/>
+                                    <Rectangle x:Name="FocusVisualBlack" IsHitTestVisible="False" Opacity="0" StrokeDashOffset="0.5" StrokeEndLineCap="Square" Stroke="Black" StrokeDashArray="1,1" Width="{Binding ElementName=RootGrid, Path=ActualWidth}" Height="{Binding ElementName=RootGrid, Path=ActualHeight}" RadiusX="{TemplateBinding controls:ButtonAttachedBehavior.RoundedRadius}" RadiusY="{TemplateBinding controls:ButtonAttachedBehavior.RoundedRadius}"/>
+                                </Grid>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="MouseOver">
+                                            <Storyboard>
+                                                <DoubleAnimation Duration="0:0:0.1" To="0.7" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="RootGrid" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <DoubleAnimation Duration="0:0:0.1" To="0.4" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="RootGrid" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation Duration="0" To="0.4" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="RootGrid" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="FocusStates">
+                                        <VisualState x:Name="Focused">
+                                            <Storyboard>
+                                                <DoubleAnimation Duration="0" To="1" Storyboard.TargetName="FocusVisualWhite" Storyboard.TargetProperty="Opacity"/>
+                                                <DoubleAnimation Duration="0" To="1" Storyboard.TargetName="FocusVisualBlack" Storyboard.TargetProperty="Opacity"/>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Unfocused" />
+                                        <VisualState x:Name="PointerFocused" />
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

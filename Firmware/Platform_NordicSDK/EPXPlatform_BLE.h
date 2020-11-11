@@ -33,8 +33,8 @@ extern "C" {
 	/*
 	 * C function callback definitions
 	 **/
-	typedef void(*PFN_EPXPLATFORM_BLE_BYTERECEIVED)(void *pinstance, uint8_t data);
-	typedef void(*PFN_EPXPLATFORM_BLE_COMMUNICATIONREADY)(void *pinstance);
+	typedef void(*PFN_EPXPLATFORM_BLE_BYTERECEIVED)(void *pinstance, bool altChannel, uint8_t data);
+	typedef void(*PFN_EPXPLATFORM_BLE_COMMUNICATIONREADY)(void *pinstance, bool altChannel);
 	typedef void(*PFN_EPXPLATFORM_BLE_CONNECTIONSTATECHANGED)(void *pinstance, bool connected);
 	typedef void(*PFN_EPXPLATFORM_BLE_BEACONRECEIVED)(void *pinstance, char *pszHost, uint8_t beaconData);
 
@@ -42,7 +42,7 @@ extern "C" {
 	void		EPXPlatform_BLE_Disconnect();
 	void		EPXPlatform_BLE_Initialize(void *pinstance, char *pszDEFAULT_BLE_NAME, PFN_EPXPLATFORM_BLE_CONNECTIONSTATECHANGED pfnConnectionStateChanged, PFN_EPXPLATFORM_BLE_COMMUNICATIONREADY pfnCommunicationReady, PFN_EPXPLATFORM_BLE_BYTERECEIVED pfnByteReceived);
 	void		EPXPlatform_BLE_SetManufacturerPayload(uint8_t *p, uint8_t cb);
-	size_t		EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb);
+	size_t		EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb, bool altChannel);
 	uint32_t	EPXPlatform_BLE_GetLastBeaconReceived();
 	void		EPXPlatform_BLE_SetBeaconActivation(bool on);
 	void		EPXPlatform_BLE_SetBeaconActivationEntries(BEACONACTIVATIONITEM ** ppBeaconActivationEntries);

@@ -27,8 +27,7 @@ CExpressivePixelsApp::CExpressivePixelsApp() :	m_CAnimator(&m_CDisplayArray)
 {
 	/*********************************************/
 	/* Set all class variables to default states
-	 *********************************************/
-	m_pCActiveSerialChannel = NULL;
+	 *********************************************/	
 	m_triggerSources = NULL;
 	memcpy(m_aesKey, g_emptyAESKey, sizeof(m_aesKey));
 	memset(&m_animationPayloadStateMachine, 0x00, sizeof(m_animationPayloadStateMachine));
@@ -43,6 +42,7 @@ CExpressivePixelsApp::CExpressivePixelsApp() :	m_CAnimator(&m_CDisplayArray)
 	m_bBeaconActivation = false;
 	m_bBeaconActivationAlwaysOn = false;
 	m_bBeaconStartupActivation = false;
+	m_bAlternateBLEChannel = false;
 	m_lastBeaconData = 0;
 	m_ledToggle = false;
 	m_powerState = EPXAPP_POWERSTATE_NONE;
@@ -74,6 +74,7 @@ CExpressivePixelsApp::CExpressivePixelsApp() :	m_CAnimator(&m_CDisplayArray)
 	m_CBLEChannel.SetBeaconReceivedHandler(BLE_BeaconReceived);
 	m_CBLEChannel.SetManufacturerPayload((uint8_t *) &m_manufacturerPayload, sizeof(m_manufacturerPayload));
 	SetActiveSerialChannel(&m_CBLEChannel); // Set BLE channel as primary
+	SetActiveStringProtocolSerialChannel(&m_CBLEChannel);
 	
 	m_CUSBChannel.SetAppInstance(this);		
 	m_CUSBChannel.SetPowerStateChangedHandler(SystemPowerStateChanged);
@@ -388,10 +389,11 @@ void CExpressivePixelsApp::SystemPowerStateChanged(void *pinstance, uint8_t stat
 /*
  * Called on-the-interrupt from the underlying communications layers when the app can start communicating
  **/
-void CExpressivePixelsApp::SystemCommunicationReady(void *pinstance)
+void CExpressivePixelsApp::SystemCommunicationReady(void *pinstance, bool altChannel)
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;
 	pthis->m_pendingCommunicationReady = true;		
+	pthis->m_bAlternateBLEChannel = true;
 }
 
 
@@ -427,13 +429,15 @@ void CExpressivePixelsApp::SystemConnectionStateChanged(void *pinstance, uint8_t
 		{
 		case EPXAPP_CONNECTIONCHANNEL_USB:
 			// Switch primary communication channel 
-			g_ExpressivePixelsApp.SetActiveSerialChannel(&pthis->m_CUSBChannel);
+			pthis->SetActiveSerialChannel(&pthis->m_CUSBChannel);
+			pthis->SetActiveStringProtocolSerialChannel(&pthis->m_CUSBChannel);
 			pthis->m_pendingConnectionStateChange = EPXAPP_PENDINGCONNECTIONSTATE_CONNECTED_USB;
 			break;
 			
 		case EPXAPP_CONNECTIONCHANNEL_BLE:
 			// Switch primary communication channel 
-			g_ExpressivePixelsApp.SetActiveSerialChannel(&pthis->m_CBLEChannel);
+			pthis->SetActiveSerialChannel(&pthis->m_CBLEChannel);
+			pthis->SetActiveStringProtocolSerialChannel(&pthis->m_CBLEChannel);
 			pthis->m_pendingConnectionStateChange = EPXAPP_PENDINGCONNECTIONSTATE_CONNECTED_BLE;
 			break;
 			
@@ -601,6 +605,7 @@ bool CExpressivePixelsApp::ProcessConnectionStateChange()
 			m_connectedChannel = EPXAPP_CONNECTIONCHANNEL_NONE;
 			m_bAuthenticated = false;
 			m_pendingCommunicationReady = false;
+			m_bAlternateBLEChannel = false;
 			if (m_bRebootOnDisconnect)
 				EPXPlatform_Runtime_Reboot(REBOOTTYPE_NONE);
 		}
@@ -618,7 +623,7 @@ bool CExpressivePixelsApp::ProcessConnectionStateChange()
 		m_connectedChannel = newConnectedChannel;	
 		
 		if (m_connectedChannel == EPXAPP_CONNECTIONCHANNEL_USB)
-			SystemCommunicationReady(this);
+			SystemCommunicationReady(this, false);
 		break;
 	}
 	m_pendingConnectionStateChange = EPXAPP_PENDINGCONNECTIONSTATE_NONE;
@@ -710,10 +715,12 @@ void CExpressivePixelsApp::ProcessCommunicationReady()
 	else
 	{
 		DEBUGLOGLN("Authentication not set");
-				
-		// Send an empty authentication challenge to the connecting client, also for USB communications
-		memset(m_currentNONCE, 0x00, sizeof(m_currentNONCE));
-		SendAuthenticationChallenge();
+		if (!m_bAlternateBLEChannel)
+		{
+			// Send an empty authentication challenge to the connecting client, also for USB communications		
+			memset(m_currentNONCE, 0x00, sizeof(m_currentNONCE));	
+			SendAuthenticationChallenge();
+		}
 		m_bAuthenticated = true;
 	}	
 	m_pendingCommunicationReady = false;
@@ -972,8 +979,11 @@ void CExpressivePixelsApp::AppProcess(bool disableUSBProcessing)
 		// Process battery
 		ProcessBattery();
 
-		// Process payload channel reading from any channel 
-		ProtocolProcess();
+		if (m_bAlternateBLEChannel)
+			StringProtocolProcess();
+		else		
+			// Process payload channel reading from COBS channel (USB or BLE)
+			ProtocolProcess();
 		
 		// Process rendering 
 		ProcessRendering();

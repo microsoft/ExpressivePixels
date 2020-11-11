@@ -4,6 +4,8 @@
 #include "EPXPlatform_Runtime.h"
 #include "EPXPlatform_USB.h"
 
+EPX_OPTIMIZEFORDEBUGGING_ON
+
 static bool											g_USBConnected = false;
 static char											m_cdc_data_array[64];
 unsigned long										g_usbBytesReceived = 0;
@@ -12,6 +14,7 @@ int													g_USBTXWaiting = 0;
 
 void												*g_USBHostInstance = NULL;
 static PFN_EPXPLATFORM_USB_CONNECTIONSTATECHANGED	g_pfnUSBConnectionStateChanged = NULL;
+static PFN_EPXPLATFORM_USB_COMMUNICATIONREADY		g_pfnUSBCommunicationReady = NULL;
 static PFN_EPXPLATFORM_USB_POWERSTATECHANGED		g_pfnUSBPowerStateChanged = NULL;
 static PFN_EPXPLATFORM_USB_BYTERECEIVED				g_pfnUSBByteReceived = NULL;
 
@@ -24,10 +27,17 @@ size_t EPXPlatform_USB_Write(uint8_t *p, uint16_t cb)
 
 
 
-bool EPXPlatform_USB_Initialize(void *pinstance, PFN_EPXPLATFORM_USB_POWERSTATECHANGED pfnUSBPowerStateChanged, PFN_EPXPLATFORM_USB_CONNECTIONSTATECHANGED pfnConnectionStateChanged, PFN_EPXPLATFORM_USB_BYTERECEIVED pfnByteReceived)
+void EPXPlatform_USB_SetDeviceName(char *pszDeviceName)
+{
+}
+
+
+
+bool EPXPlatform_USB_Initialize(void *pinstance, PFN_EPXPLATFORM_USB_POWERSTATECHANGED pfnUSBPowerStateChanged, PFN_EPXPLATFORM_USB_CONNECTIONSTATECHANGED pfnConnectionStateChanged, PFN_EPXPLATFORM_USB_COMMUNICATIONREADY pfnCommunicationReady, PFN_EPXPLATFORM_USB_BYTERECEIVED pfnByteReceived)
 {
 	g_USBHostInstance = pinstance;
 	g_pfnUSBPowerStateChanged = pfnUSBPowerStateChanged;
+	g_pfnUSBCommunicationReady = pfnCommunicationReady;
 	g_pfnUSBConnectionStateChanged = pfnConnectionStateChanged;
 	g_pfnUSBByteReceived = pfnByteReceived;
 	
@@ -50,6 +60,7 @@ void EPXPlatform_USB_Process()
 		g_USBConnected = true;
 		(*g_pfnUSBPowerStateChanged)(g_USBHostInstance, true);
 		(*g_pfnUSBConnectionStateChanged)(g_USBHostInstance, true);	
+		(*g_pfnUSBCommunicationReady)(g_USBHostInstance);			
 		return;		
 	}
 	else if(!Serial && g_USBConnected)

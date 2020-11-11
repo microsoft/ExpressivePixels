@@ -8,7 +8,7 @@
 #include <SEGGER_RTT.h>
 #endif
 
-
+EPX_OPTIMIZEFORDEBUGGING_ON
 
 #define DFU_MAGIC_OTA_RESET             0xA8
 #define DFU_MAGIC_SERIAL_ONLY_RESET     0x4e
@@ -46,6 +46,35 @@ void EPXPlatform_Runtime_Reboot(uint8_t rebootType)
 
 extern "C" 
 {	
+	/*********************************************************************************/
+	/* Centralize heap functions so they can be swapped for tracing/tracking purposes
+	/*********************************************************************************/
+	void *tmalloc(const char *pszFile, int line, size_t siz)
+	{
+	return malloc(siz);
+	}
+
+
+
+	void tfree(void *buf)
+	{
+	free(buf);
+	}
+
+
+
+	void tmallocstats()
+	{
+	}
+
+
+
+	void tmallocdump()
+	{
+	}
+
+
+
 	char *stristr(const char *subject, const char *object) 
 	{
 		int c = tolower(*object);
@@ -87,8 +116,18 @@ extern "C"
 		return 0;
 	}
 
-	
-	
+
+
+    char *epx_strupr(char s[])
+	{
+		char	*p;
+
+		for (p = s; *p; ++p)
+			*p = toupper(*p);
+		return (s);
+	}	/* END STRUPR */
+
+
 
 	uint32_t millisPassed(uint32_t localMillis) 
 	{
@@ -131,6 +170,12 @@ void EPXPlatform_Runtime_MCUSleep()
 
 
 
+void EPXPlatform_Runtime_MCUDeepSleep()
+{
+	
+}
+
+
 #ifdef USESEGGERRTT_LOG
 
 void SEGGER_RTT_LogLn(const char *fmt, ...)
@@ -156,11 +201,12 @@ void SEGGER_RTT_LogLn(const char *fmt, ...)
 extern "C" char *sbrk(int i);
 
 int freeRam() {
-	char stack_dummy = 0;
-	return &stack_dummy - sbrk(0);
+  char top;
+  return &top - reinterpret_cast<char*>(sbrk(0));
 }
-#else
 
+
+#else
 
 void* _sbrk(ptrdiff_t incr) {
 	extern uint32_t __HeapBase;
@@ -204,4 +250,21 @@ uint8_t HexToByte(char *hex, int len)
 	return value;
 }
 
+
+
+
+void BytesToHex(uint8_t *p, int cb, char *psz, int stringCB)
+{
+	int stringOffset = 0;
+	
+	while (cb > 0 && stringCB >= 2)	
+	{
+		sprintf(psz + stringOffset, "%02X", *p);
+		p++;
+		stringOffset += 2;
+		cb--;
+		stringCB--;
+	}		
+	psz[stringOffset] = 0x00;
+}
 

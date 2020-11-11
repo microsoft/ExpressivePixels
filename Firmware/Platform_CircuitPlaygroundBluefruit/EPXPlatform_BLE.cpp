@@ -9,6 +9,10 @@
 #include "EPXPlatform_Runtime.h"
 #include "EPXVariant.h"
 
+EPX_OPTIMIZEFORDEBUGGING_ON
+
+#define BLE_CONN_HANDLE_INVALID 			0xFFFF  // Invalid Connection Handle.
+
 BLEDis										g_bledis;
 BLEUart										g_bleuart;
 
@@ -18,11 +22,15 @@ static uint8_t								g_emptyBeaconHostAddr[32] = { 0x00, 0x00, 0x00, 0x00, 0x00
 static BEACONACTIVATIONITEM					**g_ppBeaconActivationEntries = NULL;
 
 static char									g_szBLEDeviceName[BLEMAX_DEVICENAME] = "";
+static char									*g_pszDEFAULT_BLE_NAME = NULL;
+char										g_szRealizedDeviceName[BLEMAX_DEVICENAME] = "";
 static uint8_t								*g_manufacturerPayload = NULL;
 static uint8_t								g_cbManufacturerPayloadLength = 0;
+static uint16_t 							g_conn_handle = BLE_CONN_HANDLE_INVALID;
 
 void										*g_hostInstance = NULL;
 PFN_EPXPLATFORM_BLE_CONNECTIONSTATECHANGED	g_pfnConnectionStateChanged = NULL;
+PFN_EPXPLATFORM_BLE_COMMUNICATIONREADY		g_pfnCommunicationReady = NULL;
 PFN_EPXPLATFORM_BLE_BYTERECEIVED			g_pfnByteReceived = NULL;
 PFN_EPXPLATFORM_BLE_BEACONRECEIVED			g_pfnBLEBeaconReceived = NULL;
 
@@ -30,8 +38,9 @@ PFN_EPXPLATFORM_BLE_BEACONRECEIVED			g_pfnBLEBeaconReceived = NULL;
 
 // callback invoked when central connects
 void connect_callback(uint16_t conn_handle)
-{
+{	
 	// Get the reference to current connection
+	g_conn_handle = conn_handle;
 	BLEConnection* connection = Bluefruit.Connection(conn_handle);
 
 	char central_name[32] = { 0 };
@@ -39,6 +48,9 @@ void connect_callback(uint16_t conn_handle)
 
 	DEBUGLOGLN("Connected to %s", central_name);
 	(*g_pfnConnectionStateChanged)(g_hostInstance, true);
+
+	if (g_pfnCommunicationReady != NULL)			
+		(*g_pfnCommunicationReady)(g_hostInstance, false);
 }
 
 
@@ -52,6 +64,8 @@ void disconnect_callback(uint16_t conn_handle, uint8_t reason)
 {
 	DEBUGLOGLN("BLE Disconnected");
 	(*g_pfnConnectionStateChanged)(g_hostInstance, false);
+
+	g_conn_handle = BLE_CONN_HANDLE_INVALID;
 }
 	
 
@@ -62,7 +76,7 @@ void EPXPlatform_BLE_UART_RXHandler(uint16_t conn_hdl)
 	{
 		uint8_t ch;
 		ch = (uint8_t) g_bleuart.read();
-		(*g_pfnByteReceived)(g_hostInstance, ch);
+		(*g_pfnByteReceived)(g_hostInstance, ch, false);
 	}
 }
 
@@ -108,13 +122,22 @@ void EPXPlatform_BLE_SetDeviceName(char *pszDeviceName)
 }
 
 	
+
+char *EPXPlatform_BLE_GetRealizedDeviceName()
+{
+	return g_szRealizedDeviceName;
+}
+
+
 	
-void EPXPlatform_BLE_Initialize(void *pinstance, PFN_EPXPLATFORM_BLE_CONNECTIONSTATECHANGED pfnConnectionStateChanged, PFN_EPXPLATFORM_BLE_BYTERECEIVED pfnByteReceived)
+void EPXPlatform_BLE_Initialize(void *pinstance, char *pszDEFAULT_BLE_NAME, PFN_EPXPLATFORM_BLE_CONNECTIONSTATECHANGED pfnConnectionStateChanged, PFN_EPXPLATFORM_BLE_COMMUNICATIONREADY pfnCommunicationReady, PFN_EPXPLATFORM_BLE_BYTERECEIVED pfnByteReceived)
 {
 	char szDeviceName[BLEMAX_DEVICENAME];
 
 	g_hostInstance = pinstance;
+	g_pszDEFAULT_BLE_NAME = pszDEFAULT_BLE_NAME;
 	g_pfnConnectionStateChanged = pfnConnectionStateChanged;
+	g_pfnCommunicationReady = pfnCommunicationReady;
 	g_pfnByteReceived = pfnByteReceived;
 	
 	Bluefruit.configPrphBandwidth(BANDWIDTH_MAX);
@@ -122,7 +145,7 @@ void EPXPlatform_BLE_Initialize(void *pinstance, PFN_EPXPLATFORM_BLE_CONNECTIONS
 	Bluefruit.begin();
 
 	// Set the advertising name
-	strncpy(szDeviceName, (char *)(g_szBLEDeviceName[0] != 0x00 ? g_szBLEDeviceName : BLE_DEFAULT_DEVICE_NAME), BLEMAX_DEVICENAME);
+	strncpy(szDeviceName, (char *)(g_szBLEDeviceName[0] != 0x00 ? g_szBLEDeviceName : g_pszDEFAULT_BLE_NAME), BLEMAX_DEVICENAME);
 		
 	// If the device hasn't been previously named then append the last two bytes of MAC address for somewhat uniqueness
 	if(g_szBLEDeviceName[0] == 0x00)
@@ -131,6 +154,7 @@ void EPXPlatform_BLE_Initialize(void *pinstance, PFN_EPXPLATFORM_BLE_CONNECTIONS
 		sprintf(&szDeviceName[strlen(szDeviceName)], " %s", &pszUniqueID[strlen(pszUniqueID) - 4]);
 	}
 	szDeviceName[BLEMAX_DEVICENAME - 1] = 0x00;
+	strcpy(g_szRealizedDeviceName, szDeviceName);
 
 	DEBUGLOGLN("BLEDevice Name %s", szDeviceName);
 	Bluefruit.setName(szDeviceName);
@@ -168,8 +192,28 @@ void EPXPlatform_BLE_Initialize(void *pinstance, PFN_EPXPLATFORM_BLE_CONNECTIONS
 	Bluefruit.Advertising.restartOnDisconnect(true);
 	Bluefruit.Advertising.setInterval(32, 244);     // in unit of 0.625 ms
 	Bluefruit.Advertising.setFastTimeout(30);       // number of seconds in fast mode
+#endif				
+}
+
+
+
+void EPXPlatform_BLE_Start()
+{
+#ifndef DISABLE_BLE_ADVERTISING	
 	Bluefruit.Advertising.start(0);                 // 0 = Don't stop advertising after n seconds
 #endif				
+}
+
+
+
+void EPXPlatform_BLE_Disconnect()
+{
+	if (g_conn_handle != BLE_CONN_HANDLE_INVALID)
+	{
+		BLEConnection* connection = Bluefruit.Connection(g_conn_handle);
+		connection->disconnect();
+		g_conn_handle = BLE_CONN_HANDLE_INVALID;
+	}
 }
 
 
@@ -196,7 +240,7 @@ void EPXPlatform_BLE_AdvertizingUpdate()
 
 
 
-size_t EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb)
+size_t EPXPlatform_BLE_SendBytes(void *pvPayload, uint16_t cb, bool altChannel)
 {
 	uint8_t *pPayload = (uint8_t *)pvPayload;
 	size_t requestBytesToWrite = cb, bytesWritten = 0;

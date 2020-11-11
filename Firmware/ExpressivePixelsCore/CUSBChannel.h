@@ -26,7 +26,7 @@ public:
 	char *channelName() { return (char *) "USB"; }
 	int	available() { return m_ByteCache.available(); }
 	int	read() { return m_ByteCache.pop(); }
-	size_t write(void *pvPayload, uint16_t cb);
+	size_t write(void *pvPayload, uint16_t cb, bool altChannel);
 
 	
 	void SetPowerStateChangedHandler(PFN_EPX_POWERSTATE_CHANGED pfnEPXPowerStateChanged) { m_pfnEPXPowerStateChanged = pfnEPXPowerStateChanged; }

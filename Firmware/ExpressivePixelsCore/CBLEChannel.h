@@ -38,7 +38,7 @@ public:
 	char *channelName() { return (char *) "BLE"; }
 	int	available() { return m_BLESerialCache.available(); }
 	int	read() { return m_BLESerialCache.pop(); }
-	size_t write(void *pvPayload, uint16_t cb);
+	size_t write(void *pvPayload, uint16_t cb, bool altChannel);
 	
 	void SetPowerStateChangedHandler(PFN_EPX_POWERSTATE_CHANGED pfnEPXPowerStateChanged) { m_pfnEPXPowerStateChanged = pfnEPXPowerStateChanged; }
 	void SetCommunicationsReadyHandler(PFN_EPX_COMMUNICATION_READY pfnEPXCommunicationReady) { m_pfnEPXCommunicationReady = pfnEPXCommunicationReady; }
@@ -48,9 +48,9 @@ public:
 	
 	
 private:
-	static void BLE_CommunicationReady(void *pinstance);
+	static void BLE_CommunicationReady(void *pinstance, bool altChannel);
 	static void BLE_ConnectionStageChanged(void *pinstance, bool connected);
-	static void BLE_ByteReceived(void *pinstance, uint8_t data);
+	static void BLE_ByteReceived(void *pinstance, bool altChannel, uint8_t data);
 	static void BLE_BeaconReceived(void *pinstance, char *pszHost, uint8_t beaconData);
 	
 	CByteQueue						m_BLESerialCache;					// Queue of incoming received bytes

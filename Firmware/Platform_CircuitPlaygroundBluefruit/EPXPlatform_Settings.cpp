@@ -5,7 +5,7 @@
 #include "EPXPlatform_Settings.h"
 #include "EPXPlatform_CStorage.h"
 
-
+EPX_OPTIMIZEFORDEBUGGING_ON
 
 void CSettings::Initialize()
 {

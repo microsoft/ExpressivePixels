@@ -91,7 +91,7 @@ void CBLEChannel::UpdateAdvertisingDeviceData()
 
 
 
-void CBLEChannel::BLE_ByteReceived(void *pinstance, uint8_t data)
+void CBLEChannel::BLE_ByteReceived(void *pinstance, bool altChannel, uint8_t data)
 {
 	CBLEChannel *pthis = (CBLEChannel *) pinstance; 
 	pthis->m_BLESerialCache.push(data);
@@ -117,10 +117,10 @@ void CBLEChannel::BLE_ConnectionStageChanged(void *pinstance, bool connected)
 
 
 
-void CBLEChannel::BLE_CommunicationReady(void *pinstance)
+void CBLEChannel::BLE_CommunicationReady(void *pinstance, bool altChannel)
 {
 	CBLEChannel *pthis = (CBLEChannel *) pinstance; 	
-	(*pthis->m_pfnEPXCommunicationReady)(pthis->m_pAppInstance);
+	(*pthis->m_pfnEPXCommunicationReady)(pthis->m_pAppInstance, altChannel);
 }
 
 
@@ -135,8 +135,8 @@ void CBLEChannel::BLE_BeaconReceived(void *pinstance, char *pszHost, uint8_t bea
 
 
 
-size_t CBLEChannel::write(void *pvPayload, uint16_t cb)
+size_t CBLEChannel::write(void *pvPayload, uint16_t cb, bool altChannel)
 {
-	return EPXPlatform_BLE_SendBytes(pvPayload, cb);	
+	return EPXPlatform_BLE_SendBytes(pvPayload, cb, altChannel);
 }
 

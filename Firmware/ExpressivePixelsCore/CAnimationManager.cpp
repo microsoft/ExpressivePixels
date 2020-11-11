@@ -100,7 +100,7 @@ void CAnimationManager::Stop()
 
 bool CAnimationManager::IsActiveAnimationInfinite(char *pszID)
 {
-	return (m_pActiveSequence != NULL && stricmp(m_pActiveSequence->Sequence.szID, pszID)==0 && m_pActiveSequence->Sequence.Meta.loopCount == 0);
+	return (m_pActiveSequence != NULL && strcmp(m_pActiveSequence->Sequence.szID, pszID)==0 && m_pActiveSequence->Sequence.Meta.loopCount == 0);
 }
 
 

@@ -9,6 +9,13 @@
 
 EPX_OPTIMIZEFORDEBUGGING_ON
 
+void CExpressivePixelsApp::StringPayloadReset()
+{
+	PayloadReset();
+}
+
+
+
 void CExpressivePixelsApp::PayloadReset()
 {
 	m_bDynamicPayloadFilling = false;
@@ -18,7 +25,7 @@ void CExpressivePixelsApp::PayloadReset()
 	m_PayloadBinaryFillPos = 0;
 	m_nPayloadCommandValue = 0;
 	m_nPayloadCommandValue2 = 0;
-	m_szPayloadCommandValue[0] = 0x00;
+	memset(m_szPayloadCommandValue, 0x00, sizeof(m_szPayloadCommandValue));
 	m_PayloadParseCommandSequenceFillPos = 0;
 
 	// Free just in case the AnimatonEngine didn't manage to attach
@@ -41,8 +48,14 @@ void CExpressivePixelsApp::PayloadParse(uint8_t protocolFormat, uint8_t data)
 	case EPX_PROTOCOLFORMAT_JSON:
 		m_PayloadStreamingJSONParser.parse(data); 
 		break;
-	}
-	
+	}	
+}
+
+
+
+void CExpressivePixelsApp::StringPayloadParse(uint8_t data)
+{
+	m_PayloadStreamingJSONParser.parse(data); 
 }
 
 
@@ -67,6 +80,13 @@ void CExpressivePixelsApp::PayloadProcessFromJSON(const char *pszJSON)
 void CExpressivePixelsApp::PayloadFinalized(uint8_t format)
 {
 	PayloadExecute(format);
+}
+
+
+
+void CExpressivePixelsApp::StringPayloadFinalized()
+{
+	PayloadExecute(EPX_PROTOCOLFORMAT_JSON);
 }
 
 
@@ -103,6 +123,20 @@ void CExpressivePixelsApp::PayloadExecute(uint8_t format)
 		break;
 
 	case PAYLOADCOMMAND_ENUMERATE_ANIMATIONS:
+		if (m_bAlternateBLEChannel)
+		{
+			PPERSISTED_SEQUENCE_LIST pAnimation = m_CAppStorage.FirstStoredSequence();
+			
+			while (pAnimation != NULL)
+			{
+				EPXString payload = EPXString(JSON_OPENOBJECT) + JSON_KEYVALUE_STRINGPAIR("Name", pAnimation->pszName) + JSON_CLOSEOBJECT;
+				StringProtocolSend((uint8_t *) payload.c_str(), payload.length() + 1);
+				pAnimation = pAnimation->pNext;
+			}
+			EPXString payloadFinal = EPXString(JSON_OPENOBJECT) + JSON_KEYVALUE_STRINGPAIR(JSON_STATUS, JSON_SUCCESS) + JSON_CLOSEOBJECT;
+			StringProtocolSend((uint8_t *) payloadFinal.c_str(), payloadFinal.length() + 1);
+		}
+		else
 		{
 			EPXString response;
 

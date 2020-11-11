@@ -11,6 +11,8 @@
 #include "ff.h"
 #include "diskio.h"
 
+EPX_OPTIMIZEFORDEBUGGING_ON
+
 // On-board external flash (QSPI or SPI) macros should already
 // defined in your board variant if supported
 // - EXTERNAL_FLASH_USE_QSPI
@@ -30,11 +32,12 @@ Adafruit_SPIFlash flash(&flashTransport);
 // file system object from SdFat
 FatFileSystem fatfs;
 
+static char g_szPlatformFilename[64];
 uint32_t g_fileBytesWritten = 0;
 
 
 
-bool CStorage::Initialize(uint16_t pinMISO, uint16_t pinMOSI, uint16_t pinSCLK, uint16_t pinCS)
+bool CStorage::Initialize(uint16_t pinMISO, uint16_t pinMOSI, uint16_t pinSCLK, uint16_t pinCS, bool format)
 {
 	DEBUGLOGLN("Initializing flash storage");
 
@@ -47,6 +50,8 @@ bool CStorage::Initialize(uint16_t pinMISO, uint16_t pinMOSI, uint16_t pinSCLK, 
 	DEBUGLOGLN("Flash initialized");
 	DEBUGLOGLN("Flash chip JEDEC ID: 0x%d", flash.getJEDECID());
 	
+Format();
+
 	// Init file system on the flash
 	if(!fatfs.begin(&flash))
 	{
@@ -99,10 +104,22 @@ bool CStorage::Format()
 void CStorage::Close(void *pFile)
 {
 	if (pFile != NULL)
-	{
 		((File *) pFile)->close();
-		DEBUGLOGLN("CStorage::Close BYTES WRITTEN %d", g_fileBytesWritten);
-	}
+}
+
+
+
+
+uint32_t CStorage::Capacity()
+{
+	return 0;
+}
+
+
+
+uint32_t CStorage::UsedSpace()
+{
+	return 0;
 }
 
 
@@ -150,10 +167,10 @@ void CStorage::EnumFolder(const char *pszFolder, PPERSISTED_SEQUENCE_LIST *ppFil
 			if (pNewEntry != NULL)
 			{
 				memset(pNewEntry, 0x00, sizeof(PERSISTED_SEQUENCE_LIST));
-				pNewEntry->pszGUID = (char *)malloc(strlen(szFilename) + 1);
-				if (pNewEntry->pszGUID != NULL)
+				pNewEntry->pszFilename = (char *)malloc(strlen(szFilename) + 1);
+				if (pNewEntry->pszFilename != NULL)
 				{
-					strcpy(pNewEntry->pszGUID, szFilename);
+					strcpy(pNewEntry->pszFilename, szFilename);
 					pNewEntry->size = (uint16_t)child.size();
 
 					if (pLast == NULL)
@@ -201,7 +218,26 @@ uint16_t CStorage::WriteFile(void *pFile, void *pData, uint16_t cbToWrite)
 		g_fileBytesWritten += bytesWritten;
 	}
 	return bytesWritten;
+}
 
+
+
+char *CStorage::TrimFilename(const char *pszInFilename)
+{
+	char *pszStart = g_szPlatformFilename;
+
+	strcpy(g_szPlatformFilename, pszInFilename);
+	if(*pszStart == '/')
+		 pszStart++;
+
+	char *pszSep = strchr(pszStart, '/');
+	if(pszSep != NULL)
+	{
+		pszSep++;
+		if(strlen(pszSep) > FilenameMax())
+			pszSep[FilenameMax()] = 0x00;
+	}
+	return g_szPlatformFilename;
 }
 
 
@@ -212,7 +248,7 @@ void *CStorage::CreateFile(const char *pszFilename)
 	File* pFile = new File();
 	if(pFile != NULL)
 	{
-		if(pFile->open(fatfs.vwd(), pszFilename, FILE_WRITE))
+		if(pFile->open(fatfs.vwd(), TrimFilename(pszFilename), (O_RDWR | O_CREAT)))
 			return pFile;
 		delete pFile;
 	}
@@ -226,7 +262,7 @@ void *CStorage::OpenFile(const char *pszFilename, int *pFileSize)
 	File* pFile = new File();
 	if(pFile != NULL)
 	{
-		if(pFile->open(fatfs.vwd(), pszFilename, FILE_READ))
+		if(pFile->open(fatfs.vwd(), TrimFilename(pszFilename), FILE_READ))
 		{
 			if(pFileSize != NULL)
 				*pFileSize = pFile->size();		
@@ -243,9 +279,9 @@ bool CStorage::DeleteFile(const char *pszFilename)
 {
 	if (fatfs.exists(pszFilename))
 	{
-		if (!fatfs.remove(pszFilename))
+		if (!fatfs.remove(TrimFilename(pszFilename)))
 		{
-			DEBUGLOGLN("**ERROR** CStorage::DeleteFile %s", pszFilename);
+			DEBUGLOGLN("**ERROR** CStorage::DeleteFile %s", TrimFilename(pszFilename));
 		}
 		else
 			return true;
@@ -267,7 +303,7 @@ uint32_t CStorage::FileSize(void *pFile)
 
 bool CStorage::FileExists(const char *pszFilename)
 {
-	return fatfs.exists(pszFilename);
+	return fatfs.exists(TrimFilename(pszFilename));
 }
 
 	
@@ -309,11 +345,27 @@ void CStorage::FreeEnumFolderListItem(PPERSISTED_SEQUENCE_LIST pItem)
 {
 	if (pItem != NULL)
 	{
+		if (pItem->pszFilename != NULL)
+			free(pItem->pszFilename);		
 		if (pItem->pszGUID != NULL)
 			free(pItem->pszGUID);
 		if (pItem->pszName != NULL)
 			free(pItem->pszName);
 		free(pItem);
+	}
+}
+
+
+
+void CStorage::FreeEnumFolderListItemFilename(PPERSISTED_SEQUENCE_LIST pItem)
+{
+	if (pItem != NULL)
+	{
+		if (pItem->pszFilename != NULL)
+		{
+			free(pItem->pszFilename);
+			pItem->pszFilename = NULL;		
+		}
 	}
 }
 
