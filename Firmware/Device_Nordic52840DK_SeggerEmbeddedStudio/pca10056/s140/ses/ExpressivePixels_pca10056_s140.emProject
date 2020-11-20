@@ -136,6 +136,8 @@
       <file file_name="$(ExpressivePixelsCore)/COBSCodec.h" />
       <file file_name="$(ExpressivePixelsCore)/CCOBSProtocol.cpp" />
       <file file_name="$(ExpressivePixelsCore)/CCOBSProtocol.h" />
+      <file file_name="$(ExpressivePixelsCore)/CStringProtocol.cpp" />
+      <file file_name="$(ExpressivePixelsCore)/CStringProtocol.h" />
       <file file_name="$(ExpressivePixelsCore)/CAnimationManager.cpp" />
       <file file_name="$(ExpressivePixelsCore)/CAnimationManager.h" />
       <file file_name="$(ExpressivePixelsCore)/CBLEBeaconActivation.cpp" />
@@ -171,6 +173,8 @@
     <folder Name="ExpressivePixelsPlatform">
       <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_BLE.c" />
       <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_BLE.h" />
+      <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_BLE_DualNUS.c" />
+      <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_BLE_DualNUS.h" />
       <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_CByteQueue.cpp" />
       <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_CByteQueue.h" />
       <file file_name="$(ExpressivePixelsPlatformNordic)/EPXPlatform_CBatteryMonitor.cpp" />
@@ -248,7 +252,6 @@
       <file file_name="$(SDK)/components/ble/ble_services/ble_bas/ble_bas.c" />
       <file file_name="$(SDK)/components/ble/ble_services/ble_dis/ble_dis.c" />
       <file file_name="$(SDK)/components/ble/ble_services/ble_hrs/ble_hrs.c" />
-      <file file_name="$(SDK)/components/ble/ble_services/ble_nus\ble_nus.c" />
     </folder>
     <folder Name="nRF_SoftDevice">
       <file file_name="$(SDK)/components/softdevice/common/nrf_sdh.c" />
