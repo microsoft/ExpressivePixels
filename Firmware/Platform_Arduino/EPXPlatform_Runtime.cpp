@@ -39,7 +39,7 @@ void EPXPlatform_Runtime_Reboot(uint8_t rebootType)
 		break;
 	}	
 	delay(500);
-	// NVIC_SystemReset();
+	NVIC_SystemReset();
 }
 
 
@@ -118,13 +118,23 @@ extern "C"
 
 
 
-    char *epx_strupr(char s[])
+    char *epx_strupr(char *s)
 	{
-		char	*p;
+		char *pCur, *pNew;
 
-		for (p = s; *p; ++p)
-			*p = toupper(*p);
-		return (s);
+		pNew = (char*)TMALLOC(strlen(s));
+		if (pNew != NULL)
+		{
+			pCur = pNew;
+			while (*s != 0x00)
+			{
+				*pCur = toupper(*s);
+				s++;
+				pCur++;
+			}
+			*pCur = 0x00;
+		}
+		return pNew;
 	}	/* END STRUPR */
 
 
@@ -141,7 +151,7 @@ extern "C"
 	{
 		#ifdef USESEGGERRTT_LOG
 		SEGGER_RTT_Init();
-		SEGGER_RTT_WriteString(0, "SEGGER_RTT Initialized\r\n");
+		SEGGER_RTT_WriteString(0, ">> SEGGER_RTT Initialized **\r\n");
 		#endif
 	}
 
@@ -150,6 +160,25 @@ extern "C"
 	{
 		
 	}
+
+
+
+	#ifdef USESEGGERRTT_LOG
+
+	void SEGGER_RTT_LogLn(const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+
+		int size = vsnprintf(NULL, 0, fmt, args) + 1;
+		char* buf = (char*)malloc(size);
+		vsnprintf(buf, size, fmt, args);
+		SEGGER_RTT_WriteString(0, buf);
+		SEGGER_RTT_WriteString(0, "\r\n");
+		free(buf);
+		va_end(args);
+	}
+	#endif
 }
 
 
@@ -175,26 +204,6 @@ void EPXPlatform_Runtime_MCUDeepSleep()
 	
 }
 
-
-#ifdef USESEGGERRTT_LOG
-
-void SEGGER_RTT_LogLn(const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-
-    int size = vsnprintf(NULL, 0, fmt, args) + 1;
-    char *buf = (char *) malloc(size);
-    vsnprintf(buf, size, fmt, args);
-	SEGGER_RTT_WriteString(0, buf);
-    SEGGER_RTT_WriteString(0, "\r\n");
-	free(buf);
-    va_end(args);
-}
-
-
-
-#endif
 
 
 #ifdef ARDUINO_ARCH_SAMD

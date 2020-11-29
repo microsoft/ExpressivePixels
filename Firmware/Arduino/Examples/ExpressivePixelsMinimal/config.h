@@ -1,11 +1,38 @@
-// Uncomment the following lines for an Adafruit RGB LED Matrix
-// #define ADAFRUIT_PROTOMATTER
+/***************************************************************************************/
+/* This section specifies the LED driver, EG: Neopixel (WS2812), DotStar, Matrix array */
+/***************************************************************************************/
+// Uncomment the following line for an Adafruit RGB LED Matrix
+#define DISPLAYDRIVER_ADAFRUIT_PROTOMATTER
 
 // Uncomment the following line for Adafruit Dotstar
-// #define ADAFRUIT_DOTSTAR
+// #define DISPLAYDRIVER_ADAFRUIT_DOTSTAR
 
 // Uncomment the following lines if you're using NeoPixels
-#define ADAFRUIT_NEOPIXEL
+// #define DISPLAYDRIVER_ADAFRUIT_NEOPIXEL
+
+#ifdef ADAFRUIT_DOTSTAR
+#include "AdafruitDotStar_EPXDriver.h"
+#elif defined(ADAFRUIT_NEOPIXEL)
+#include <AdafruitNeoPixel_EPXDriver.h>
+#elif defined(ADAFRUIT_PROTOMATTER)
+#include <AdafruitRGBMatrix_EPXDriver.h>
+#endif
+
+/***************************************************************************************/
+/* This section specifies the Display Driver's pin connections                         */
+/***************************************************************************************/
+// Specify the data pin the LED array is connected to 
+// #define PIN_STRIP_DATA PIN_A2
+
+// Specify the clock pin the LED array is connected to 
+// #define PIN_STRIP_CLOCK PIN_A3
+
+
+/***************************************************************************************/
+/* This section specifies the Display dimensions and topology mapping                  */
+/***************************************************************************************/
+// Uncomment the following line for the Adafruit Dotstar 8x8
+// #define DISPLAY_DOTSTAR8x8
 
 // Uncomment the following line for the Adafruit Featherwing Dotstar
 // #define DISPLAY_FEATHERWINGDOTSTAR
@@ -13,26 +40,15 @@
 // Uncomment the following line for a Flexible 16x16 Matrix
 // #define DISPLAY_FLEX16X16
 
-// Uncomment the following line for a 64x32 display
-// #define DISPLAY_ADARGBMATRIX64x32
-
 // Uncomment the following line for Sparklet 16x16 Square
 // #define DISPLAY_SPARKLETSQUARE16X16
+
+// Uncomment the following line for a 64x32 display
+#define DISPLAY_MATRIX64x32
 
 // Uncomment the following line for Sparklet 18x18 Round
 // #define DISPLAY_SPARKLETROUND18X18
 
-// Specify the data pin the LED array is connected to 
-// #define PIN_STRIP PIN_A2
-
-
-#ifdef ADAFRUIT_DOTSTAR
-  #include "AdafruitDotStar_EPXDriver.h"
-#elif defined(ADAFRUIT_NEOPIXEL)
-  #include <AdafruitNeoPixel_EPXDriver.h>
-#elif defined(ADAFRUIT_PROTOMATTER)
-  #include <AdafruitRGBMatrix_EPXDriver.h>
-#endif
 
 
 extern uint8_t bootAnimation[];
@@ -54,6 +70,21 @@ extern uint8_t bootAnimation[];
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
         0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
     };
+#elif defined (DISPLAY_DOTSTAR8x8)
+#define DISPLAYARRAY_WIDTH		8
+#define DISPLAYARRAY_HEIGHT		8
+
+uint16_t g_displayArrayPixelTopology[DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT] =
+{
+  7,  6,  5,  4,  3,  2,  1,  0,
+    15, 14, 13, 12, 11, 10, 9,  8,
+    23, 22, 21, 20, 19, 18, 17, 16,
+    31, 30, 29, 28, 27, 26, 25, 24,
+    39, 38, 37, 36, 35, 34, 33, 32,
+    47, 46, 45, 44, 43, 42, 41, 40,
+    55, 54, 53, 52, 51, 50, 49, 48,
+    63, 62, 61, 60, 59, 58, 57, 56
+};
 #elif defined (DISPLAY_FLEX16X16)
     // Specify dimensions of display connect to the device
     #define DISPLAYARRAY_WIDTH		16
@@ -78,7 +109,6 @@ extern uint8_t bootAnimation[];
         14, 17, 46, 51, 78, 81,110, 113,142,145,174,177,206,209,238,241,
         15, 16, 47, 48, 79, 80,111, 112,143,144,175,176,207,208,239,240
     };
-
 #elif defined (DISPLAY_SPARKLETROUND18X18)
     // Specify dimensions of display connect to the device
     #define DISPLAYARRAY_WIDTH		18
@@ -111,7 +141,7 @@ extern uint8_t bootAnimation[];
     #define DISPLAYARRAY_HEIGHT		16
 
     uint16_t g_displayArrayPixelTopology[DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT];
-#elif defined (DISPLAY_ADARGBMATRIX64x32)
+#elif defined (DISPLAY_MATRIX64x32)
     #define DISPLAYARRAY_WIDTH		64
     #define DISPLAYARRAY_HEIGHT		32
 

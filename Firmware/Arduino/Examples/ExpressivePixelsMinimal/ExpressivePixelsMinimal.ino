@@ -28,15 +28,15 @@ void setup()
 #endif
 
     // Create the underlying driver class
-#ifdef ADAFRUIT_DOTSTAR
+#ifdef DISPLAYDRIVER_ADAFRUIT_DOTSTAR
     // For a APA102 type of LED
     CAdafruitDotStar_EPXDriver *pDotStarDriver = new CAdafruitDotStar_EPXDriver(PIN_A2, PIN_A1, DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT);
     g_CDisplayArray.Initialize(pDotStarDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);
-#elif defined(ADAFRUIT_NEOPIXEL)
+#elif defined(DISPLAYDRIVER_ADAFRUIT_NEOPIXEL)
     // For WS2812 LEDs
     CAdafruitNeoPixel_EPXDriver *pNeoPixelDriver = new CAdafruitNeoPixel_EPXDriver(PIN_NEOPIXEL, DISPLAYARRAY_WIDTH * DISPLAYARRAY_HEIGHT);
     g_CDisplayArray.Initialize(pNeoPixelDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);
-#elif defined(ADAFRUIT_PROTOMATTER)
+#elif defined(DISPLAYDRIVER_ADAFRUIT_PROTOMATTER)
     // For Protomatter RGB Matrixes
     CAdafruitRGBMatrix_EPXDriver *pRGBMatrixDriver = new CAdafruitRGBMatrix_EPXDriver(DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT);
     g_CDisplayArray.Initialize(pRGBMatrixDriver, DISPLAYARRAY_WIDTH, DISPLAYARRAY_HEIGHT, 0);

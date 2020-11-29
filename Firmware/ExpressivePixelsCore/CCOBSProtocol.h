@@ -11,7 +11,7 @@
 #define MAX_COBS_DATAFRAMESIZE				253 // Total payload storage size within COBS window
 
 // Type of COBs frame
-enum EPXFrameType { EPX_FRAMETYPE_HEADERPLUSDATA, EPX_FRAMETYPE_DATA };
+enum EPXFrameType { EPX_FRAMETYPE_HEADERPLUSDATA, EPX_FRAMETYPE_DATA, EPX_FRAMETYPE_HEADERPLUSDATA32 };
 
 // Type of data protocol stored within COBS packet
 enum EPXProtocolFormat { EPX_PROTOCOLFORMAT_BINARY, EPX_PROTOCOLFORMAT_JSON, EPX_PROTOCOLFORMAT_BINARY_ACK };
@@ -40,6 +40,16 @@ typedef struct
 	uint8_t flags;				// Per packet control flags
 } EPXPROTOCOL_HEADER;
 
+
+typedef struct
+{
+	EPXPROTOCOL_0 epxProtocol0; // Core COBS header	
+	uint8_t format;				// Data format of COBS frame
+	uint32_t length;			// Payload stored in entire logical packet (across multiple COBS packets)
+	uint8_t flags;				// Per packet control flags
+} EPXPROTOCOL_HEADER32;
+
+
 #pragma pack(pop) 
 
 
@@ -66,14 +76,14 @@ public:
 	CSerialChannelBase			*m_pCActiveSerialChannel; // Reference to active serial channel class
 
 private:
-	void						ProtocolDecode(uint8_t *p, uint16_t length);
+	void						ProtocolDecode(uint8_t *p, uint32_t length);
 	void						ProtocolReset();
 	void						ProtocolSendACK();
 	
 	bool						m_progressCompletionTracking;	// Progress for reporting back to connected host
 	int							m_lastProgressCompletion;		// Previous progress for reporting back to connected host
 
-	uint16_t					m_channelMaxCacheLoad;			// Debug tracking for unprocessor byte queue load
+	uint32_t					m_channelMaxCacheLoad;			// Debug tracking for unprocessor byte queue load
 	uint8_t						m_ProtocolFormat;				// Current protocol format being decoded
 	uint8_t						m_ProtocolFlags;				// Current flags for active logical payload
 	uint8_t						m_ProtocolVersion;				// For future use
@@ -81,8 +91,8 @@ private:
 	uint8_t						m_COBS_StagingBuffer[COBS_MAXFRAME_SIZE + 1]; // Working buffer for streaming frame
 	uint8_t						m_COBS_ProcessedBuffer[COBS_MAXFRAME_SIZE]; // Decoded buffer for streaming frame
 	
-	uint16_t					m_ProtocolPacketReceiveSize;	// Logical size of logical incoming frame
-	uint16_t					m_ProtocolPacketReceiveRemaining; // Logical size of bytes remaining for incoming frame
+	uint32_t					m_ProtocolPacketReceiveSize;	// Logical size of logical incoming frame
+	uint32_t					m_ProtocolPacketReceiveRemaining; // Logical size of bytes remaining for incoming frame
 
 	
 };

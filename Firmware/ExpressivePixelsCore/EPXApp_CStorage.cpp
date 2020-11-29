@@ -172,8 +172,9 @@ void CExpressivePixelsStorage::EnumerateSequencesJSON(EPXString &response, uint3
 	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED(JSON_STATUS, JSON_SUCCESS);
 	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED((const char *) JSONKEY_TRANSACTIONID, EPXString(activeTransactionID));
 	
-	uint8_t pctUsed = (uint8_t)(((float) CStorage::UsedSpace()/ (float) CStorage::Capacity()) * 100);
+	uint8_t pctUsed = epxmax(1, (uint8_t)(((float) CStorage::UsedSpace()/ (float) epxmax(1, CStorage::Capacity())) * 100));
 	response += JSON_KEYVALUE_STRINGPAIR_CONTINUED(T(JSONKEY_STORAGEUSED), EPXString((uint32_t) pctUsed));	
+	DEBUGLOGLN("Enum Animations USED %d, CAPACITY %d, PCT %d", CStorage::UsedSpace(), CStorage::Capacity(), pctUsed);
 	
 	if (pszInnerContainerObject != NULL)
 		response += JSON_KEYOBJECTOPEN("info");		

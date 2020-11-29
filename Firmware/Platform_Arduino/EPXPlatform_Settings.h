@@ -3,7 +3,7 @@
 #pragma once
 #include "EPXPlatform_Runtime.h"
 
-#define SETTINGS_FOLDER		F("/Settings")
+#define SETTINGS_FOLDER		F("/SETTINGS")
 
 class CSettings
 {

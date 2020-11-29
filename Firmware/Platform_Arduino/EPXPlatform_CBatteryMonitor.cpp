@@ -8,17 +8,14 @@
 
 #define VBAT_MV_PER_LSB   (0.87890625F)   // 3.6V ADC range and 12-bit ADC resolution = 3600mV/4096
 #define VBAT_MV_PER_LSB   (0.87890625F)   // 3.6V ADC range and 12-bit ADC resolution = 3600mV/4096
-// #define VBAT_DIVIDER      (0.71275837F)   // 2M + 0.806M voltage divider on VBAT = (2M / (0.806M + 2M))
-// #define VBAT_DIVIDER_COMP (1.403F)        // Compensation factor for the VBAT divider
 #define VBAT_DIVIDER      (0.59820538F)   // 1.2M + 0.806M voltage divider on VBAT = (1.2M / (0.806M + 2M)) 
-// #define VBAT_DIVIDER_COMP (1.67166667F)        // Compensation factor for the VBAT divider = 1 / VBAT_DIVIDER
 #define VBAT_DIVIDER_COMP (1.70583495F)
 
 #define SAMPLES_IN_BUFFER 1
 
 
-uint16_t BatteryMonitor::m_milliVolts = 0;
-uint8_t BatteryMonitor::m_percentage = 0;
+uint16_t BatteryMonitor::m_milliVolts = 5000;
+uint8_t BatteryMonitor::m_percentage = 100;
 
 
 

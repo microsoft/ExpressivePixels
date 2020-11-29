@@ -26,6 +26,7 @@ void CCOBSProtocol::ProtocolReset()
 {
 	m_progressCompletionTracking = false;
 	m_lastProgressCompletion = 0;
+	m_ProtocolPacketReceiveRemaining = 0;
 	m_channelMaxCacheLoad = 0;
 	m_COBS_StagingFillIndex = 0;
 }
@@ -67,6 +68,18 @@ void CCOBSProtocol::ProtocolProcess()
 						}
 						break;
 					
+					case EPX_FRAMETYPE_HEADERPLUSDATA32:
+					{
+						EPXPROTOCOL_HEADER32* pEPXHeader32 = (EPXPROTOCOL_HEADER32*)pEPXProtocol0;
+						m_ProtocolFormat = pEPXHeader32->format;
+						m_ProtocolFlags = pEPXHeader32->flags;
+
+						m_ProtocolPacketReceiveSize = (uint32_t)pEPXHeader32->length;
+						m_ProtocolPacketReceiveRemaining = m_ProtocolPacketReceiveSize;
+						ProtocolDecode((uint8_t*)(pEPXHeader32 + 1), decodedFrameLength - sizeof(EPXPROTOCOL_HEADER32));
+					}
+					break;
+
 					case EPX_FRAMETYPE_DATA:
 						ProtocolDecode((uint8_t *)(pEPXProtocol0 + 1), decodedFrameLength - sizeof(EPXPROTOCOL_0));
 						break;
@@ -94,7 +107,7 @@ void CCOBSProtocol::ProtocolProcess()
 
 
 
-void CCOBSProtocol::ProtocolDecode(uint8_t *p, uint16_t length)
+void CCOBSProtocol::ProtocolDecode(uint8_t *p, uint32_t length)
 {
 	// If more was received than expected for this packet
 	if(length > m_ProtocolPacketReceiveRemaining)
@@ -113,6 +126,7 @@ void CCOBSProtocol::ProtocolDecode(uint8_t *p, uint16_t length)
 		int currentProgressCompletion = (m_ProtocolPacketReceiveSize - m_ProtocolPacketReceiveRemaining) / delta;
 		if (currentProgressCompletion > m_lastProgressCompletion)
 		{
+		//	DEBUGLOGLN("Completion %d %d", currentProgressCompletion, m_ProtocolPacketReceiveRemaining);
 			m_lastProgressCompletion = currentProgressCompletion;
 			SendTransmissionCompletionUpdate(currentProgressCompletion);
 		}

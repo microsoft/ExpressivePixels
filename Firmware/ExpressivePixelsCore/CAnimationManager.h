@@ -62,7 +62,7 @@ typedef struct
 	EXPRESSIVEPIXEL_SEQUENCE_META Meta;	// Animtion header	
 	uint16_t		palleteHexLength;	// String HEX length of JSON palette parse
 	PALETTE_ENTRY	*pPalette, *pROMPalette, *pRAMPalette;	// Live state of palette processing
-	uint16_t		framesHexLength;	// String HEX length of JSON frames parse
+	uint32_t		framesHexLength;	// String HEX length of JSON frames parse
 	uint8_t			*pActiveFrames, *pROMFrames, *pRAMFrames; // Live state of frames processing
 	void			*pFile;				// Reference to read animation from file
 	uint32_t		frameBytesStartOffset; // Processing offset into file/memory 
@@ -81,8 +81,8 @@ typedef struct
 struct ACTIVE_ANIMATIONSEQUENCE
 {
 	EXPRESSIVEPIXEL_SEQUENCE Sequence; // Core animation definition structure
-	uint16_t				 firstFrameOffset;			// Byte offset to first frame in whole animation reference
-	uint16_t				 currentFrameOffset;		// Byte offset to current frame in animation
+	uint32_t				 firstFrameOffset;			// Byte offset to first frame in whole animation reference
+	uint32_t				 currentFrameOffset;		// Byte offset to current frame in animation
 	uint8_t                  currentRepeatIteration;	// Numer of times animation has repeated in loop sequence
 	unsigned long	         frameInterval;				// Milliseconds between frames based on framerate
 	unsigned long	         previousFrameRateMillis;	// Previous frame's milliseconds between frames based on framerate

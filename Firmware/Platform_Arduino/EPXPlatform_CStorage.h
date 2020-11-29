@@ -10,7 +10,7 @@ class CStorage
 {
 public:
 	static bool Initialize(uint16_t pinMISO, uint16_t pinMOSI, uint16_t pinSCLK, uint16_t pinCS, bool format = false);
-	static bool CreateFolder(char *pszFolder);
+	static bool CreateFolder(const char *pszFolder);
 	static bool DeleteFile(const char *pszFilename);
 	static bool FileExists(const char *pszFilename);
 	static bool Format();
@@ -34,5 +34,19 @@ public:
 	static void Power(bool on);
 
 	static const int FilenameMax() { return ADAFSFORK_FILENAMEMAX; }
+
+	static bool m_lfsInitialized;
+	static int m_nvmPageSize;
+	static int m_nvmPageCount;
+	static int m_nvmCapacity;
+	static int m_nvmRowSize;
+	static int m_deviceBlocks;
+
+	static void NVMErase(const volatile void* flash_ptr, uint32_t size);
+	static void NVMRead(const volatile void* flash_ptr, void* data, uint32_t size);
+	static void NVMEraseRow(const volatile void* flash_ptr);
+	static inline uint32_t NVMReadWord(const void* data);
+	static void NVMWrite(const volatile void* flash_ptr, const void* data, uint32_t size);
+
 };
 

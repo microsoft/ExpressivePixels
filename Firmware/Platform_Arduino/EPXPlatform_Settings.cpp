@@ -9,7 +9,7 @@ EPX_OPTIMIZEFORDEBUGGING_ON
 
 void CSettings::Initialize()
 {
-	CStorage::CreateFolder((char *) SETTINGS_FOLDER);
+	CStorage::CreateFolder((const char *) SETTINGS_FOLDER);
 }
 
 
@@ -42,7 +42,6 @@ uint16_t CSettings::Read(const char *pszSettingsKey, void *pBuffer, uint16_t cb)
 	uint16_t bytesRead = 0;
 	
 	EPXString filename = EPXString((const char *) SETTINGS_FOLDER) + "/" + pszSettingsKey; 	
-	memset(pBuffer, 0x00, cb);	
 	if (CStorage::FileExists(filename.c_str()))
 	{
 		void *pFile = CStorage::OpenFile(filename.c_str());

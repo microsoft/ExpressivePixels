@@ -139,11 +139,12 @@ bool CExpressivePixelsApp::AppInitialize(CLEDDriverBase *pLEDDriver, uint16_t *p
 	CSettings::Read((const char *) SETTINGSKEY_AESKEY, m_aesKey, sizeof(m_aesKey));
 		
 	// Setting - load autoplay
+	m_bAutoPlayOnUSBPower = true;
 	CSettings::Read((const char *) SETTINGSKEY_AUTOPLAYONUSBPOWER, &m_bAutoPlayOnUSBPower, sizeof(m_bAutoPlayOnUSBPower));
 	DEBUGLOGLN("AUTOPLAYONUSBPOWER %s", m_bAutoPlayOnUSBPower ? "ON" : "OFF");
 	
 	// Setting - load last set brightness
-	uint8_t bootBrightness;
+	uint8_t bootBrightness = 0;
 	CSettings::Read((const char *) SETTINGSKEY_BRIGHTNESS, &bootBrightness, sizeof(bootBrightness));
 	if (bootBrightness > 0)
 		m_CDisplayArray.SetBrightness(bootBrightness);
@@ -164,21 +165,21 @@ bool CExpressivePixelsApp::AppInitialize(CLEDDriverBase *pLEDDriver, uint16_t *p
 	
 	// Initialize and start USB Channel **BEFORE** the Bluetooth Channel
 	m_CUSBChannel.Initialize();
-	
+
 	// Initialize and start Bluetooth Channel
 	m_CBLEChannel.Initialize(g_szDEFAULT_BLE_NAME);
 	m_CBLEChannel.SetBeaconActivationEntries(m_beaconActivation.EntriesReference());
 	m_beaconActivation.Load();
-	
+
 	// Initialize crypto for auhentication
 	EPXPlatform_Crypto_Initialize();
-	
+
 	// USB device name is based on realized BLE name (that may autogenerate from MAC address)
 	m_CUSBChannel.SetDeviceName(m_CBLEChannel.GetRealizedDeviceName());
 		
 	// Initialize trigger sources
 	RegisterTriggerSource(&m_CSwitchActivation);
-	
+
 	// Finally start Bluetooth advertising
 	m_CBLEChannel.Start();
 	
@@ -393,7 +394,7 @@ void CExpressivePixelsApp::SystemCommunicationReady(void *pinstance, bool altCha
 {
 	CExpressivePixelsApp *pthis = (CExpressivePixelsApp *) pinstance;
 	pthis->m_pendingCommunicationReady = true;		
-	pthis->m_bAlternateBLEChannel = true;
+	pthis->m_bAlternateBLEChannel = altChannel;
 }
 
 
@@ -1061,11 +1062,14 @@ EPXString CExpressivePixelsApp::GetBatteryInfoResponse()
  **/
 void CExpressivePixelsApp::SetBrightness(uint8_t brightness)
 {
-	// Call the driver 
-	m_CDisplayArray.SetBrightness(brightness);
+	if (brightness != m_CDisplayArray.GetBrightness())
+	{
+		// Call the driver 
+		m_CDisplayArray.SetBrightness(brightness);
 
-	// Persist as setting
-	CSettings::Write((const char *) SETTINGSKEY_BRIGHTNESS, &brightness, sizeof(brightness));
+		// Persist as setting
+		CSettings::Write((const char*)SETTINGSKEY_BRIGHTNESS, &brightness, sizeof(brightness));
+	}
 }
 
 

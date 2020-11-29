@@ -7,10 +7,6 @@
 EPX_OPTIMIZEFORDEBUGGING_ON
 
 static bool											g_USBConnected = false;
-static char											m_cdc_data_array[64];
-unsigned long										g_usbBytesReceived = 0;
-unsigned long										g_cUSBRXReceived = 0;
-int													g_USBTXWaiting = 0;
 
 void												*g_USBHostInstance = NULL;
 static PFN_EPXPLATFORM_USB_CONNECTIONSTATECHANGED	g_pfnUSBConnectionStateChanged = NULL;
@@ -39,9 +35,7 @@ bool EPXPlatform_USB_Initialize(void *pinstance, PFN_EPXPLATFORM_USB_POWERSTATEC
 	g_pfnUSBPowerStateChanged = pfnUSBPowerStateChanged;
 	g_pfnUSBCommunicationReady = pfnCommunicationReady;
 	g_pfnUSBConnectionStateChanged = pfnConnectionStateChanged;
-	g_pfnUSBByteReceived = pfnByteReceived;
-	
-	Serial.begin(115200);
+	g_pfnUSBByteReceived = pfnByteReceived;	
 	return true;
 }
 
@@ -49,6 +43,8 @@ bool EPXPlatform_USB_Initialize(void *pinstance, PFN_EPXPLATFORM_USB_POWERSTATEC
 
 bool EPXPlatform_USB_Activate()
 {
+	(*g_pfnUSBPowerStateChanged)(g_USBHostInstance, true);
+	return true;
 }
 
 
@@ -57,8 +53,7 @@ void EPXPlatform_USB_Process()
 {
 	if(Serial && !g_USBConnected)
 	{
-		g_USBConnected = true;
-		(*g_pfnUSBPowerStateChanged)(g_USBHostInstance, true);
+		g_USBConnected = true;		
 		(*g_pfnUSBConnectionStateChanged)(g_USBHostInstance, true);	
 		(*g_pfnUSBCommunicationReady)(g_USBHostInstance);			
 		return;		
@@ -67,27 +62,11 @@ void EPXPlatform_USB_Process()
 	{
 		g_USBConnected = false;
 		(*g_pfnUSBConnectionStateChanged)(g_USBHostInstance, false);			
-		(*g_pfnUSBPowerStateChanged)(g_USBHostInstance, false);
 		return;
 	}
 
-	int processSize = min(128, Serial.available());
+	int processSize = min(1024, Serial.available());
 	while(processSize--)
 		(*g_pfnUSBByteReceived)(g_USBHostInstance, Serial.read());
-
-/*
-    if(processSize > 0)
-    {
-		char szFmt[129];
-		for(int i = 0; i < processSize;i++)
-		{
-			uint8_t val = Serial.read();
-			szFmt[i] = val;
-			(*g_pfnUSBByteReceived)(g_USBHostInstance, val);			
-		}
-		szFmt[processSize - 1] = 0x00;
-		DEBUGLOGLN(szFmt);
-	}
-	*/
 }
 

@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 #pragma once
 #include <Arduino.h>
-#define USESEGGERRTT_LOG
+// #define USESEGGERRTT_LOG
 #define EPX_OPTIMIZEFORDEBUGGING
 
 enum enumLogLevel { LOGLEVEL_INFO = 1, LOGLEVEL_PAYLOAD, LOGLEVEL_NONE };
@@ -44,13 +44,6 @@ int freeRam();
 	#define EPX_OPTIMIZEFORDEBUGGING_OFF
 #endif
 
-#ifdef USESEGGERRTT_LOG
-void SEGGER_RTT_LogLn(const char *fmt, ...);
-#define DEBUGLOGLN(...) SEGGER_RTT_LogLn(__VA_ARGS__); 
-#else
-#define DEBUGLOGLN(...) 
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,7 +67,15 @@ extern "C" {
 	char *stristr(const char *subject, const char *object);
 	int stricmp(const char *s1, const char *s2);
 	char *epx_strupr(char s[]);
-		
+
+#ifdef USESEGGERRTT_LOG
+	void SEGGER_RTT_LogLn(const char* fmt, ...);
+
+#define DEBUGLOGLN(...) SEGGER_RTT_LogLn( __VA_ARGS__)
+#else
+#define DEBUGLOGLN(...)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -36,6 +36,9 @@ void CSwitchActivation::SubsystemInitialize(int numMappings, SWITCHACTIVATION_GP
 {
 	g_numGPIOButtonMappings = numMappings;
 	g_pGPIOButtonMappings = pMappings;
+	DEBUGLOGLN("SwitchActivation %d pins", g_numGPIOButtonMappings);
+	for(int i = 0;i < g_numGPIOButtonMappings;i++)
+		DEBUGLOGLN("\t%s - %d", g_pGPIOButtonMappings[i].pszPinName, g_pGPIOButtonMappings[i].gpioPin);
 }
 
 

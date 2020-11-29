@@ -4,6 +4,12 @@
 #include "EPXPlatform_Runtime.h"
 #include "CBLEBeaconActivation.h"
 
+#if defined (NRF52832_XXAA) || defined (NRF52840_XXAA)
+#define EPX_BLUETOOTH
+#include <bluefruit.h>
+#endif
+
+
 // #define DISABLE_BLE_ADVERTISING
 #define BLEMAX_DEVICENAME	18
 
