@@ -27,6 +27,7 @@ void CCOBSProtocol::ProtocolReset()
 	m_progressCompletionTracking = false;
 	m_lastProgressCompletion = 0;
 	m_ProtocolPacketReceiveRemaining = 0;
+	m_ProtocolPacketReceiveSize = 0;
 	m_channelMaxCacheLoad = 0;
 	m_COBS_StagingFillIndex = 0;
 }
@@ -62,7 +63,7 @@ void CCOBSProtocol::ProtocolProcess()
 							
 							//DEBUGLOGLN("EPX_FRAMETYPE_HEADERPLUSDATA %d", pEPXHeader->length);
 														
-							memcpy(&m_ProtocolPacketReceiveSize, &pEPXHeader->length, sizeof(uint16_t));						
+							m_ProtocolPacketReceiveSize = pEPXHeader->length;
 							m_ProtocolPacketReceiveRemaining = m_ProtocolPacketReceiveSize;
 							ProtocolDecode((uint8_t *)(pEPXHeader + 1), decodedFrameLength - sizeof(EPXPROTOCOL_HEADER));
 						}
@@ -74,13 +75,16 @@ void CCOBSProtocol::ProtocolProcess()
 						m_ProtocolFormat = pEPXHeader32->format;
 						m_ProtocolFlags = pEPXHeader32->flags;
 
-						m_ProtocolPacketReceiveSize = (uint32_t)pEPXHeader32->length;
+						// DEBUGLOGLN("EPX_FRAMETYPE_HEADERPLUSDATA32 %d", pEPXHeader32->length);
+
+						m_ProtocolPacketReceiveSize = pEPXHeader32->length;
 						m_ProtocolPacketReceiveRemaining = m_ProtocolPacketReceiveSize;
 						ProtocolDecode((uint8_t*)(pEPXHeader32 + 1), decodedFrameLength - sizeof(EPXPROTOCOL_HEADER32));
 					}
 					break;
 
 					case EPX_FRAMETYPE_DATA:
+						//DEBUGLOGLN("EPX_FRAMETYPE_DATA remaining %d", m_ProtocolPacketReceiveRemaining);
 						ProtocolDecode((uint8_t *)(pEPXProtocol0 + 1), decodedFrameLength - sizeof(EPXPROTOCOL_0));
 						break;
 					}
@@ -137,6 +141,7 @@ void CCOBSProtocol::ProtocolDecode(uint8_t *p, uint32_t length)
 
 	if (m_ProtocolPacketReceiveRemaining == 0)
 	{
+		// DEBUGLOGLN("m_ProtocolPacketReceiveRemaining == 0");
 		PayloadFinalized(m_ProtocolFormat);
 		ProtocolReset();
 		PayloadReset();
