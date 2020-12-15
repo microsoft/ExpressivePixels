@@ -187,5 +187,5 @@ class EPXProtocol:
 
     def encode_binaryack(self):
         magic_ack = array.array('B', [0xA1, 0x85, 0x29, 0xB8, 0xBC, 0xED, 0xFE, 0x62]);
-        frames = self.encode(magic_ack, ProtocolFormat.BINARY.value, 0)
+        frames = self.encode(magic_ack, ProtocolFormat.BINARYACK.value, 0)
         return frames
