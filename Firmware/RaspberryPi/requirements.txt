@@ -1,0 +1,16 @@
+pybleno==0.11
+fire==0.3.1
+numpy==1.16.2
+rpi_ws281x==4.2.5
+cobs==1.1.4
+arcade==2.5.1
+backports.statistics==0.1.0
+Cython==0.29.21
+dataclasses==0.8
+ipaddr==2.2.0
+ordereddict==1.1
+Pillow==8.0.1
+psutil==5.7.3
+pyserial==3.5
+PyYAML==5.3.1
+wincertstore==0.2
