@@ -12,5 +12,5 @@ ordereddict==1.1
 Pillow==8.0.1
 psutil==5.7.3
 pyserial==3.5
-PyYAML==5.3.1
+PyYAML==5.4
 wincertstore==0.2
