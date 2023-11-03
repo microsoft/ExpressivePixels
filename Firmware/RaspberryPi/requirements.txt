@@ -1,6 +1,6 @@
 pybleno==0.11
 fire==0.3.1
-numpy==1.16.2
+numpy==1.22.0
 rpi_ws281x==4.2.5
 cobs==1.1.4
 arcade==2.5.1
